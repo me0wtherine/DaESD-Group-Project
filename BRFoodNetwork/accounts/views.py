@@ -1,11 +1,27 @@
-from django.shortcuts import render
-from django.contrib.auth.forms import UserCreationForm
-from django.urls import reverse_lazy
-from django.views.generic import CreateView
+from django.shortcuts import render, redirect
+from .forms import SignupForm
+from .forms import ProducerSignupForm
 
 # Create your views here.
 
-class SignUpView(CreateView):
-    form_class = UserCreationForm
-    success_url = reverse_lazy("login")
-    template_name = "registration/signup.html"
+def SignUpView(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = SignupForm()
+    
+    return render(request, 'registration/signup.html', {'form': form})
+
+def ProducerSignUpView(request):
+    if request.method == 'POST':
+        form = ProducerSignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = ProducerSignupForm()
+    
+    return render(request, 'registration/producersignup.html', {'form': form})
