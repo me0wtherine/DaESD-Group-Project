@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-kia2is2-x=b=10^0^fr=98m8wo=3@1@0qt*qvu2^9&gi!z)0g6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'foodNetwork',
 ]
 
 MIDDLEWARE = [

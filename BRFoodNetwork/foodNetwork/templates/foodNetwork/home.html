@@ -1,0 +1,72 @@
+{% extends "foodNetwork/base.html" %}
+
+{% block title %}Home - Bristol Regional Food Network{% endblock %}
+
+{% block content %}
+<!-- Search Section -->
+<section class="search-section">
+    <div class="search-area">
+        <h1>Search for local products...</h1>
+        <form class="search-form" method="get" action="#">
+            <div class="search-input-wrapper">
+                <span class="search-icon">&#9906;</span>
+                <input type="text" name="q" placeholder="Search for local products..." />
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+        <div class="category-filters">
+            <button class="btn btn-outline">Vegetables</button>
+            <button class="btn btn-outline">Dairy</button>
+            <button class="btn btn-outline">Bakery</button>
+            <button class="btn btn-outline">Preserves</button>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Items & Producers -->
+<section class="content-section">
+    <div class="content-row">
+        <!-- Popular Items -->
+        <div class="popular-items">
+            <h2>Popular Items</h2>
+            <div class="product-grid">
+                {% for item in popular_items %}
+                <div class="product-card">
+                    <div class="product-image-placeholder">
+                        <span>Product Image</span>
+                    </div>
+                    <div class="product-info">
+                        <h3>{{ item.name }}</h3>
+                        <p class="product-farm">{{ item.farm }} &middot; {{ item.distance }} miles</p>
+                        <p class="product-price">&pound;{{ item.price }}</p>
+                        <button class="btn btn-add">Add to Basket</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Producers Near You -->
+        <div class="producers-nearby">
+            <h2>Producers Near You</h2>
+            <div class="map-placeholder">
+                <p class="map-text">Map</p>
+            </div>
+            <div class="producer-list">
+                {% for producer in nearby_producers %}
+                <div class="producer-item">
+                    <div class="producer-avatar"></div>
+                    <div class="producer-info">
+                        <h3>{{ producer.name }}</h3>
+                        <p>{{ producer.distance }} miles away</p>
+                    </div>
+                    <a href="#" class="btn btn-outline-sm">View Store</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
