@@ -1,0 +1,25 @@
+{% extends "foodNetwork/base.html" %}
+
+{% block title %}Sign Up - Choose Account Type{% endblock %}
+
+{% block content %}
+<section class="account-type-section">
+    <div class="account-type-card">
+        <h1>Sign Up</h1>
+        <p>Choose your account type to get started</p>
+        <div class="account-type-buttons">
+            <a href="{% url 'signup' %}" class="account-type-option">
+                <div class="account-icon">👤</div>
+                <h2>Customer</h2>
+                <p>Shop for local produce from farms near you</p>
+            </a>
+            <a href="{% url 'producersignup' %}" class="account-type-option">
+                <div class="account-icon">🌾</div>
+                <h2>Producer</h2>
+                <p>Sell your products to local customers</p>
+            </a>
+        </div>
+        <p class="back-link">Already have an account? <a href="{% url 'account_type_login' %}">Log in</a></p>
+    </div>
+</section>
+{% endblock %}

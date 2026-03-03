@@ -1,0 +1,25 @@
+{% extends "foodNetwork/base.html" %}
+
+{% block title %}Log In - Choose Account Type{% endblock %}
+
+{% block content %}
+<section class="account-type-section">
+    <div class="account-type-card">
+        <h1>Log In</h1>
+        <p>Choose your account type</p>
+        <div class="account-type-buttons">
+            <a href="{% url 'customer_login' %}" class="account-type-option">
+                <div class="account-icon">👤</div>
+                <h2>Customer</h2>
+                <p>Access your shopping account</p>
+            </a>
+            <a href="{% url 'producer_login' %}" class="account-type-option">
+                <div class="account-icon">🌾</div>
+                <h2>Producer</h2>
+                <p>Access your producer dashboard</p>
+            </a>
+        </div>
+        <p class="back-link">Don't have an account? <a href="{% url 'account_type_signup' %}">Sign up</a></p>
+    </div>
+</section>
+{% endblock %}

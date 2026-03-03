@@ -1,12 +1,12 @@
 {% extends "foodNetwork/base.html" %}
 
-{% block title %}Customer Sign Up{% endblock %}
+{% block title %}Customer Log In{% endblock %}
 
 {% block content %}
 <section class="auth-section">
     <div class="auth-card">
-        <h1>Customer Sign Up</h1>
-        <p>Create your account to shop local produce</p>
+        <h1>Customer Log In</h1>
+        <p>Log in to your customer account</p>
         
         {% if messages %}
             {% for message in messages %}
@@ -19,11 +19,11 @@
         <form method="post" class="auth-form">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn btn-primary btn-lg">Sign Up</button>
+            <button type="submit" class="btn btn-primary btn-lg">Log In</button>
         </form>
         
-        <p class="auth-link">Already have a customer account? <a href="{% url 'customer_login' %}">Log in</a></p>
-        <p class="auth-link">Want to register as a producer? <a href="{% url 'producersignup' %}">Producer Sign Up</a></p>
+        <p class="auth-link">Don't have a customer account? <a href="{% url 'signup' %}">Sign up</a></p>
+        <p class="auth-link">Are you a producer? <a href="{% url 'producer_login' %}">Producer Log In</a></p>
     </div>
 </section>
 {% endblock %}

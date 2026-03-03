@@ -15,7 +15,18 @@
             <ul class="nav-links">
                 <li><a href="#">Shop</a></li>
                 <li><a href="#">Producers</a></li>
-                <li><a href="{% url 'welcome' %}">Login / Register</a></li>
+                {% if user_name %}
+                    <li class="user-menu">
+                        <button class="user-greeting" onclick="toggleUserDropdown()">
+                            Hello, <span class="user-name">{{ user_name }}</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="{% url 'logout' %}" class="dropdown-item">Sign Out</a>
+                        </div>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'welcome' %}">Login / Register</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>
@@ -31,5 +42,23 @@
             <p>&copy; 2026 Bristol Regional Food Network. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.user-menu');
+            if (userMenu && !userMenu.contains(event.target)) {
+                const dropdown = document.getElementById('userDropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

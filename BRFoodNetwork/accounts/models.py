@@ -4,7 +4,7 @@ from django.db import models
 class Accounts(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=100)
+    password = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20)
     postal_code = models.CharField(max_length=20)
@@ -16,7 +16,7 @@ class Producers(models.Model):
     business_name = models.CharField(max_length=100)
     description = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=100)
+    password = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20)
     postal_code = models.CharField(max_length=20)
