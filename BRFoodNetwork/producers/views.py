@@ -8,6 +8,9 @@ from accounts.models import Producers
 from products.models import Products
 from .forms import StoreInfoForm, ProductForm
 
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+
 WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 
@@ -158,3 +161,63 @@ def delete_product(request, product_id):
         product.delete()
         messages.success(request, f'"{name}" has been removed.')
     return redirect('producer_dashboard')
+
+@producer_required
+def producer_orders(request):
+    """Display all orders for the logged-in producer"""
+    from orders.models import Orders
+    
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+    
+    # Get all orders - in a complete system, you would filter by products from this producer
+    # For now, showing all orders that contain products from this producer
+    all_orders = Orders.objects.all().order_by('-order_date')
+    
+    return render(request, 'producers/producers_orders.html', {
+        'producer': producer,
+        'orders': all_orders,
+    })
+
+
+@producer_required
+def producer_payouts(request):
+    """Display weekly settlements and payouts for the logged-in producer"""
+    from orders.models import Orders
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+    
+    # Get all orders for settlement calculations
+    all_orders = Orders.objects.all().order_by('-order_date')
+    
+    # Calculate settlement data
+    settlements = []
+    total_orders_value = 0
+    total_commission = 0
+    total_payout = 0
+    
+    for order in all_orders:
+        order_value = float(order.total_price)
+        commission = order_value * 0.05  # 5% network commission
+        payout = order_value * 0.95  # 95% producer payment
+        
+        total_orders_value += order_value
+        total_commission += commission
+        total_payout += payout
+        
+        settlements.append({
+            'order': order,
+            'order_value': order_value,
+            'commission': commission,
+            'payout': payout,
+            'status': order.settlement_status,
+        })
+    
+    return render(request, 'producers/producer_payouts.html', {
+        'producer': producer,
+        'settlements': settlements,
+        'total_orders_value': total_orders_value,
+        'total_commission': total_commission,
+        'total_payout': total_payout,
+    })

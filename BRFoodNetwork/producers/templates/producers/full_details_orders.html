@@ -1,0 +1,29 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %} Order {{ }}{% endblock %}
+
+<h1> Order Number</h2>
+<p> Customer Name </p>
+<p> Customer Contact </p>
+<p> Delivery Address </p>
+
+<p> Special Instruction </p>
+
+<p> Order Date </p>
+<p> Delivery Date </p>
+<p> Status </p>
+
+<p> Items Ordered </p>
+<p> Total Value </p>
+
+<div class="card-items-ordered">
+    {% for item in order %}
+    <div class="card">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        <h3>{{ product.name }}</h3>
+        <p>{{ order.quantity }}</p>
+    </div>
+</div>
+        
+

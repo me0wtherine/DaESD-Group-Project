@@ -41,6 +41,12 @@ INSTALLED_APPS = [
     'accounts',
     'producers',
     'products',
+    'orders',
+    'cart',
+    'payments',
+    'reviews',
+    'communityGroup',
+    'resturant',
 ]
 
 MIDDLEWARE = [

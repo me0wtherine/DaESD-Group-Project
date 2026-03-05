@@ -20,7 +20,7 @@ class Products(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='other')
     description = models.TextField(blank=True, default='')
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    unit = models.CharField(max_length=50, default='each', help_text='e.g. per kg, per bunch, each')
+    unit = models.CharField(max_length=50, default=0, help_text='e.g. per kg, per bunch, each')
     stock_quantity = models.PositiveIntegerField(default=0)
     is_available = models.BooleanField(default=True)
     is_organic = models.BooleanField(default=False)

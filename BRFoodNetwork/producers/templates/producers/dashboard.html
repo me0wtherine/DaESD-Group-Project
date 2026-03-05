@@ -36,11 +36,11 @@
                     <span class="sidebar-icon">📋</span> Store Details</a></li>
                 <li><a href="#products-section" class="sidebar-link">
                     <span class="sidebar-icon">📦</span> Products</a></li>
-                <li><a href="#" class="sidebar-link">
+                <li><a href="{% url 'producer_orders' %}" class="sidebar-link">
                     <span class="sidebar-icon">🧾</span> Orders</a></li>
                 <li><a href="#" class="sidebar-link">
                     <span class="sidebar-icon">💰</span> Surplus Deals</a></li>
-                <li><a href="#" class="sidebar-link">
+                <li><a href="{% url 'producer_payouts' %}" class="sidebar-link">
                     <span class="sidebar-icon">💳</span> Payouts</a></li>
                 <li><a href="#" class="sidebar-link">
                     <span class="sidebar-icon">📊</span> Analytics</a></li>
@@ -306,5 +306,21 @@
             }
         });
     }
+
+    function loadSection(sectionName) {
+    fetch(`/producer/section/${sectionName}/`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.querySelector('.manage-main').innerHTML = html;
+        // Update active sidebar link
+        document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+        event.target.classList.add('active');
+    });
+}
 </script>
 {% endblock %}

@@ -1,0 +1,308 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Orders – {{ producer.business_name }}{% endblock %}
+
+{% block content %}
+<div class="manage-store-wrapper">
+
+    <!-- Sub-header bar -->
+    <div class="manage-topbar">
+        <h1 class="manage-title">Orders</h1>
+        <div class="manage-topbar-right">
+            <span class="manage-farm-name">{{ producer.business_name }}</span>
+            <span class="status-badge {% if producer.is_active %}active{% else %}inactive{% endif %}">
+                Status: {% if producer.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+            <a href="#" class="btn btn-outline-sm">View Store Page</a>
+        </div>
+    </div>
+
+    <div class="manage-layout">
+
+        <!-- ===== Left Sidebar ===== -->
+        <aside class="manage-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="{% url 'producer_dashboard' %}" class="sidebar-link">
+                    <span class="sidebar-icon">📋</span> Store Details</a></li>
+                <li><a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">📦</span> Products</a></li>
+                <li><a href="{% url 'producer_orders' %}" class="sidebar-link active">
+                    <span class="sidebar-icon">🧾</span> Orders</a></li>
+                <li><a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">💰</span> Surplus Deals</a></li>
+                <li><a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">💳</span> Payouts</a></li>
+                <li><a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">📊</span> Analytics</a></li>
+            </ul>
+        </aside>
+
+        <!-- ===== Main Content ===== -->
+        <div class="manage-main">
+
+            {% if Orders %}
+                {% for Order in Orders %}
+                <div class="order-card">
+                    <!-- Order Header -->
+                    <div class="order-header">
+                        <h2 class="order-number">Order {{ order.id|stringformat:"05d" }}</h2>
+                    </div>
+
+                    <!-- Order Details Grid -->
+                    <div class="order-details-grid">
+                        <!-- Left Column -->
+                        <div class="order-left">
+                            <div class="order-field">
+                                <label class="order-label">Customer Name:</label>
+                                <p class="order-value">{{ order.user.name }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Customer Contact:</label>
+                                <p class="order-value">{{ order.user.phone_number }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Delivery Address:</label>
+                                <p class="order-value">{{ order.user.address }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Pickup or Delivery:</label>
+                                <p class="order-value">Delivery</p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="order-right">
+                            <div class="order-field">
+                                <label class="order-label">Order Date:</label>
+                                <p class="order-value">{{ order.order_date|date:"d/m/Y" }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Delivery Date:</label>
+                                <p class="order-value">{{ order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Status:</label>
+                                <div class="status-field">
+                                    <span class="status-badge status-{{ order.order_status }}">{{ order.get_order_status_display }}</span>
+                                    <button class="status-edit-btn" title="Edit status">✏️</button>
+                                </div>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Special Instructions:</label>
+                                <textarea class="order-instructions" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items Summary -->
+                    <div class="order-summary">
+                        <p class="summary-text">Items Ordered: <strong>0</strong> | Total Price: <strong>£{{ order.total_price }}</strong></p>
+                    </div>
+
+                    <!-- Order Items Table -->
+                    <div class="order-items-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="3" class="no-items">Items data not available in current system. Please update order items structure.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p class="empty-icon">🧾</p>
+                    <h3>No orders yet</h3>
+                    <p>Your orders will appear here once customers place them.</p>
+                </div>
+            {% endif %}
+
+        </div><!-- /manage-main -->
+    </div><!-- /manage-layout -->
+</div>
+
+<style>
+    .order-card {
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .order-header {
+        border-bottom: 2px solid #ddd;
+        padding-bottom: 16px;
+        margin-bottom: 20px;
+    }
+
+    .order-number {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .order-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 24px;
+    }
+
+    .order-field {
+        margin-bottom: 16px;
+    }
+
+    .order-label {
+        font-weight: 600;
+        font-size: 13px;
+        color: #666;
+        display: block;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .order-value {
+        font-size: 14px;
+        color: #333;
+        margin: 0;
+        word-break: break-word;
+    }
+
+    .status-field {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-badge.status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-badge.status-confirmed {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-badge.status-dispatched {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+
+    .status-badge.status-delivered {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .status-badge.status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-edit-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+    }
+
+    .order-instructions {
+        width: 100%;
+        height: 80px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 13px;
+        resize: none;
+        background: white;
+    }
+
+    .order-summary {
+        background: white;
+        padding: 12px 16px;
+        border-radius: 4px;
+        margin-bottom: 16px;
+        border-left: 4px solid #28a745;
+    }
+
+    .summary-text {
+        margin: 0;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .order-items-table {
+        overflow-x: auto;
+    }
+
+    .order-items-table table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    .order-items-table thead {
+        background: #f5f5f5;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .order-items-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .order-items-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .order-items-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .no-items {
+        text-align: center;
+        color: #999;
+        padding: 24px !important;
+    }
+
+    @media (max-width: 768px) {
+        .order-details-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+    }
+</style>
+
+{% endblock %}
+
