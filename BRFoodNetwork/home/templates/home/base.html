@@ -32,6 +32,7 @@
                             <a href="{% url 'logout' %}" class="dropdown-item">Sign Out</a>
                         </div>
                     </li>
+                    <button onclick="toggleCart()" class="btn-cart">Cart</button><!-- button for cart-->
                 {% else %}
                     <li><a href="{% url 'welcome' %}">Login / Register</a></li>
                 {% endif %}
@@ -44,6 +45,63 @@
         {% block content %}{% endblock %}
     </main>
 
+      <!-- CART - adding the cart section -->
+<div id="cartDrawer" class="cart-drawer">
+    <div class="cart-header">
+        <h2>Your Basket</h2>
+        <button onclick="toggleCart()" class="close-cart">✕</button>
+    </div>
+<div class="cart-body">
+
+  <div class="cart-items">
+    {% if cart_items %}
+      {% for item in cart_items %}
+        <div class="cart-item">
+          <div class="cart-item-left">
+            <div class="cart-item-name">{{ item.name }}</div>
+            <div class="cart-item-meta">£{{ item.price }} each</div>
+          </div>
+
+          <div class="cart-item-right">
+            <div class="cart-item-qty">Qty: {{ item.quantity }}</div>
+            <div class="cart-item-line">£{{ item.line_total }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="cart-item cart-item-empty">
+        <div class="cart-item-left">
+          <div class="cart-item-name">No items yet</div>
+          <div class="cart-item-meta">Add products to see them here</div>
+        </div>
+        <div class="cart-item-right">
+          <div class="cart-item-qty">Qty: 0</div>
+          <div class="cart-item-line">£0.00</div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="cart-summary">
+    <div class="cart-summary-row">
+      <span>Subtotal</span>
+      <strong>£{{ cart_total|default:"0.00" }}</strong>
+    </div>
+    <div class="cart-summary-row muted">
+      <span>Delivery</span>
+      <span>Calculated at checkout</span>
+    </div>
+  </div>
+
+  <div class="cart-actions">
+    <a class="btn btn-outline" href="{% url 'cart:detail' %}">View basket</a>
+    <a class="btn btn-primary" href="#">Checkout</a>
+  </div>
+
+</div>
+    
+</div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-container">
@@ -55,6 +113,13 @@
         function toggleUserDropdown() {
             const dropdown = document.getElementById('userDropdown');
             dropdown.classList.toggle('show');
+        }
+
+          // -------------------cart window----------------------------------
+
+        function toggleCart() {
+        const cart = document.getElementById("cartDrawer");
+        cart.classList.toggle("open");
         }
 
         // Close dropdown when clicking outside
