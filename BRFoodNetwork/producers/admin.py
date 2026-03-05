@@ -1,3 +1,4 @@
 from django.contrib import admin
 
-# Register your models here.
+# Producers model is registered in accounts/admin.py.
+# Products model is registered in products/admin.py.

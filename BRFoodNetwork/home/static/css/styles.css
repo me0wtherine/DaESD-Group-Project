@@ -1234,6 +1234,11 @@ a:hover {
     object-fit: cover;
 }
 
+.img-placeholder-text {
+    font-size: 0.75rem;
+    color: #999;
+}
+
 .product-name-cell {
     font-weight: 500;
 }

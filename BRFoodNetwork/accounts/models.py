@@ -1,7 +1,8 @@
 from django.db import models
 
-# Create your models here.
+
 class Accounts(models.Model):
+    """Customer accounts for the food network."""
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
@@ -9,12 +10,17 @@ class Accounts(models.Model):
     phone_number = models.CharField(max_length=20)
     postal_code = models.CharField(max_length=20)
 
+    class Meta:
+        verbose_name_plural = 'Accounts'
+
     def __str__(self):
         return self.name
-    
-class Producers(models.Model): 
+
+
+class Producers(models.Model):
+    """Producer/farm accounts that list products on the network."""
     business_name = models.CharField(max_length=100)
-    description = models.CharField(max_length=100)
+    description = models.CharField(max_length=100, help_text='Short tagline for your business')
     store_description = models.TextField(blank=True, default='', max_length=2000)
     business_image = models.ImageField(upload_to='producer_images/', blank=True, null=True)
     banner_image = models.ImageField(upload_to='producer_banners/', blank=True, null=True)
@@ -29,6 +35,9 @@ class Producers(models.Model):
     certifications = models.TextField(blank=True, default='')
     farm_story = models.TextField(blank=True, default='')
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name_plural = 'Producers'
 
     def __str__(self):
         return self.business_name

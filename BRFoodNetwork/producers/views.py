@@ -1,15 +1,19 @@
+import json
+from functools import wraps
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+
 from accounts.models import Producers
 from products.models import Products
 from .forms import StoreInfoForm, ProductForm
-import json
 
 WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 
 def producer_required(view_func):
-    """Decorator to ensure only logged-in producers can access the view"""
+    """Decorator to ensure only logged-in producers can access the view."""
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if request.session.get('user_type') != 'producer' or 'user_id' not in request.session:
             messages.error(request, 'You must be logged in as a producer to access this page.')

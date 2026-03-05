@@ -1,12 +1,7 @@
 from django.db import models
 
-# Create your models here.
-class Cart(models.Model):
-    CartID
-    UserID
-
-class CartItem(models.Model):
-    ProdID
-    Quantity
-    CartID
+# TODO: Implement Cart and CartItem models
+# Planned fields:
+#   Cart: user (FK to Accounts)
+#   CartItem: product (FK to Products), quantity, cart (FK to Cart)
     
