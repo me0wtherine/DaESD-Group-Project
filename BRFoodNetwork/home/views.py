@@ -20,7 +20,7 @@ def home(request):
         {'name': 'Mendip Dairy', 'distance': 12},
     ]
 
-    return render(request, 'foodNetwork/home.html', {
+    return render(request, 'home/home.html', {
         'popular_items': popular_items,
         'nearby_producers': nearby_producers,
     })
@@ -28,4 +28,4 @@ def home(request):
 
 def welcome(request):
     """Welcome / landing page for unauthenticated users."""
-    return render(request, 'foodNetwork/welcome.html')
+    return render(request, 'home/welcome.html')
