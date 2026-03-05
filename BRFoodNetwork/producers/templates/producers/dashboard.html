@@ -1,0 +1,310 @@
+{% extends "foodNetwork/base.html" %}
+{% load static %}
+
+{% block title %}Manage Store – {{ producer.business_name }}{% endblock %}
+
+{% block content %}
+<div class="manage-store-wrapper">
+
+    <!-- Sub-header bar -->
+    <div class="manage-topbar">
+        <h1 class="manage-title">Manage Store</h1>
+        <div class="manage-topbar-right">
+            <span class="manage-farm-name">{{ producer.business_name }}</span>
+            <span class="status-badge {% if producer.is_active %}active{% else %}inactive{% endif %}">
+                Status: {% if producer.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+            <a href="#" class="btn btn-outline-sm">View Store Page</a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="manage-messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="manage-layout">
+
+        <!-- ===== Left Sidebar ===== -->
+        <aside class="manage-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="{% url 'producer_dashboard' %}" class="sidebar-link active">
+                    <span class="sidebar-icon">📋</span> Store Details</a></li>
+                <li><a href="#products-section" class="sidebar-link">
+                    <span class="sidebar-icon">📦</span> Products</a></li>
+                <li><a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">🧾</span> Orders</a></li>
+                <li><a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">💰</span> Surplus Deals</a></li>
+                <li><a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">💳</span> Payouts</a></li>
+                <li><a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">📊</span> Analytics</a></li>
+            </ul>
+        </aside>
+
+        <!-- ===== Main Content ===== -->
+        <div class="manage-main">
+
+            <form method="post" action="{% url 'update_store' %}" enctype="multipart/form-data" id="storeForm">
+                {% csrf_token %}
+
+                <!-- Store & Settings + Contact Details Row -->
+                <div class="manage-content-row">
+
+                    <!-- Left: Store & Settings -->
+                    <div class="manage-content-left">
+                        <h2 class="section-heading">Store &amp; Settings</h2>
+
+                        <!-- Banner Image -->
+                        <div class="banner-upload-area">
+                            {% if producer.banner_image %}
+                                <img src="{{ producer.banner_image.url }}" alt="Banner" class="banner-preview-img">
+                            {% else %}
+                                <div class="banner-placeholder">
+                                    <span>Banner Image (1200 x 300px)</span>
+                                </div>
+                            {% endif %}
+                            <label class="banner-edit-btn" for="id_banner_image">✏️</label>
+                            <input type="file" name="banner_image" id="id_banner_image" accept="image/*" class="hidden-file-input">
+
+                            <!-- Farm Logo overlay -->
+                            <div class="farm-logo-area">
+                                {% if producer.business_image %}
+                                    <img src="{{ producer.business_image.url }}" alt="Logo" class="farm-logo-img">
+                                {% else %}
+                                    <div class="farm-logo-placeholder">
+                                        <span>Farm Logo<br>(200 x 200px)</span>
+                                    </div>
+                                {% endif %}
+                                <label class="logo-edit-btn" for="id_business_image">✏️</label>
+                                <input type="file" name="business_image" id="id_business_image" accept="image/*" class="hidden-file-input">
+                            </div>
+                        </div>
+
+                        <!-- Store Description -->
+                        <div class="store-desc-block">
+                            <label class="field-label">📝 Store Description</label>
+                            <textarea name="store_description" id="id_store_description"
+                                      maxlength="2000" rows="5"
+                                      placeholder="Tell your story, farm practices, certifications, etc.">{{ producer.store_description }}</textarea>
+                            <div class="char-count">
+                                <span id="descCharCount">{{ producer.store_description|length }}</span> / 2000
+                            </div>
+                        </div>
+
+                        <!-- Store Highlights -->
+                        <h3 class="sub-heading">Store Highlights</h3>
+                        <div class="highlights-row">
+                            <!-- Certifications -->
+                            <div class="highlight-card">
+                                <h4>Certifications</h4>
+                                <p class="highlight-hint">(e.g. Organic)</p>
+                                <textarea name="certifications" rows="3" placeholder="List your certifications...">{{ producer.certifications }}</textarea>
+                            </div>
+                            <!-- Farm Photos -->
+                            <div class="highlight-card">
+                                <h4>Farm Photos</h4>
+                                <p class="highlight-hint">(up to 5)</p>
+                                <div class="photo-drop-area">
+                                    <span>Drag photos<br>or <label for="id_farm_photos" class="browse-link">browse</label></span>
+                                    <input type="file" name="farm_photos" id="id_farm_photos" accept="image/*" multiple class="hidden-file-input">
+                                </div>
+                                <small class="photo-hint">Max 5 photos (JPG or PNG, 3MB each)</small>
+                            </div>
+                            <!-- Farm Story / Recipes -->
+                            <div class="highlight-card">
+                                <h4>Farm Story / Recipes</h4>
+                                <textarea name="farm_story" rows="3" placeholder="Share your farm story or favourite recipes...">{{ producer.farm_story }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Contact Details & Opening Hours -->
+                    <div class="manage-content-right">
+                        <h2 class="section-heading">Contact Details</h2>
+
+                        <div class="contact-field">
+                            <label>Phone Number:</label>
+                            <input type="text" name="phone_number" value="{{ producer.phone_number }}" placeholder="Phone number">
+                        </div>
+                        <div class="contact-field">
+                            <label>Email:</label>
+                            <input type="email" name="email" value="{{ producer.email }}" placeholder="Email address">
+                        </div>
+                        <div class="contact-field">
+                            <label>Address:</label>
+                            <input type="text" name="address" value="{{ producer.address }}" placeholder="Business address">
+                        </div>
+
+                        <div class="checkbox-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="collection_available" {% if producer.collection_available %}checked{% endif %}>
+                                Collection Available
+                            </label>
+                        </div>
+                        <div class="checkbox-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="delivery_available" {% if producer.delivery_available %}checked{% endif %}>
+                                Delivery Available
+                            </label>
+                        </div>
+
+                        <h3 class="sub-heading mt-20">Opening Hours</h3>
+                        <div class="opening-hours-list" id="openingHoursList">
+                            {% for day_data in opening_hours %}
+                            <div class="hours-row">
+                                <select name="oh_day" class="hours-day-select">
+                                    {% for d in weekdays %}
+                                        <option value="{{ d }}" {% if d == day_data.day %}selected{% endif %}>{{ d }}</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="text" name="oh_open" value="{{ day_data.open }}" placeholder="9:00 AM" class="hours-time-input">
+                                <input type="text" name="oh_close" value="{{ day_data.close }}" placeholder="5:00 PM" class="hours-time-input">
+                            </div>
+                            {% empty %}
+                            <div class="hours-row">
+                                <select name="oh_day" class="hours-day-select">
+                                    {% for d in weekdays %}
+                                        <option value="{{ d }}">{{ d }}</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="text" name="oh_open" placeholder="9:00 AM" class="hours-time-input">
+                                <input type="text" name="oh_close" placeholder="5:00 PM" class="hours-time-input">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-outline-sm mt-10" onclick="addHoursRow()">Add Another Day</button>
+                    </div>
+
+                </div><!-- /manage-content-row -->
+
+                <!-- Save Changes -->
+                <div class="save-bar">
+                    <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                </div>
+            </form>
+
+            <!-- ===== Your Products ===== -->
+            <div class="products-table-section" id="products-section">
+                <div class="products-table-header">
+                    <h2 class="section-heading">Your Products</h2>
+                    <div class="products-table-actions">
+                        <a href="{% url 'add_product' %}" class="btn btn-primary">+ Add New Product</a>
+                    </div>
+                </div>
+
+                <div class="products-search-bar">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="productSearch" placeholder="Search products..." onkeyup="filterProducts()">
+                    </div>
+                </div>
+
+                {% if products %}
+                <table class="products-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Product Image</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Availability</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <div class="table-product-img">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                    {% else %}
+                                        <span class="img-placeholder-text">No image</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="product-name-cell">{{ product.name }}</td>
+                            <td>{{ product.get_category_display }}</td>
+                            <td>
+                                {% if product.available_from and product.available_to %}
+                                    {{ product.available_from|date:"d/m/Y" }} - {{ product.available_to|date:"d/m/Y" }}
+                                {% else %}
+                                    Year-round
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.is_available %}
+                                    <span class="stock-badge available">In Stock</span>
+                                {% else %}
+                                    <span class="stock-badge unavailable">Out of Stock</span>
+                                {% endif %}
+                            </td>
+                            <td class="table-actions-cell">
+                                <a href="{% url 'edit_product' product.id %}" class="table-action-btn" title="Edit">✏️</a>
+                                <form method="post" action="{% url 'delete_product' product.id %}" class="inline-form" onsubmit="return confirm('Remove this product?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="table-action-btn delete" title="Delete">🗑️</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <p class="empty-icon">📦</p>
+                    <h3>No products listed yet</h3>
+                    <p>Start adding products so customers can discover them.</p>
+                    <a href="{% url 'add_product' %}" class="btn btn-primary">+ Add Your First Product</a>
+                </div>
+                {% endif %}
+            </div>
+
+        </div><!-- /manage-main -->
+    </div><!-- /manage-layout -->
+</div>
+
+<script>
+    // Character count for store description
+    const descArea = document.getElementById('id_store_description');
+    const charCount = document.getElementById('descCharCount');
+    if (descArea && charCount) {
+        descArea.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+    }
+
+    // Add another opening hours row
+    function addHoursRow() {
+        const list = document.getElementById('openingHoursList');
+        const days = {{ weekdays_json|safe }};
+        const options = days.map(d => `<option value="${d}">${d}</option>`).join('');
+        const row = document.createElement('div');
+        row.className = 'hours-row';
+        row.innerHTML = `
+            <select name="oh_day" class="hours-day-select">${options}</select>
+            <input type="text" name="oh_open" placeholder="9:00 AM" class="hours-time-input">
+            <input type="text" name="oh_close" placeholder="5:00 PM" class="hours-time-input">
+        `;
+        list.appendChild(row);
+    }
+
+    // Filter products table
+    function filterProducts() {
+        const query = document.getElementById('productSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('#productsTable tbody tr');
+        rows.forEach(row => {
+            const name = row.querySelector('.product-name-cell');
+            if (name) {
+                row.style.display = name.textContent.toLowerCase().includes(query) ? '' : 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

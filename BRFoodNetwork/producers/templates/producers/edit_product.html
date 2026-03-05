@@ -1,0 +1,53 @@
+{% extends "foodNetwork/base.html" %}
+{% load static %}
+
+{% block title %}Edit {{ product.name }} – {{ producer.business_name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <div class="form-page-header">
+        <a href="{% url 'producer_dashboard' %}" class="back-arrow">← Back to Dashboard</a>
+        <h1>Edit Product</h1>
+        <p>Update details for <strong>{{ product.name }}</strong>.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data" class="dashboard-form">
+            {% csrf_token %}
+
+            {% if product.image %}
+                <div class="form-group">
+                    <label>Current Image</label>
+                    <div class="current-image-preview">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    </div>
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-help">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                <a href="{% url 'producer_dashboard' %}" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "foodNetwork/base.html" %}
+{% load static %}
+
+{% block title %}Add Product – {{ producer.business_name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <div class="form-page-header">
+        <a href="{% url 'producer_dashboard' %}" class="back-arrow">← Back to Dashboard</a>
+        <h1>Add New Product</h1>
+        <p>List a new product for customers to discover and purchase.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data" class="dashboard-form">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-help">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg">Add Product</button>
+                <a href="{% url 'producer_dashboard' %}" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

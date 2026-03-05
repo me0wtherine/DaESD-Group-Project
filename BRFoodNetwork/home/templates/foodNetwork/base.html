@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bristol Regional Food Network{% endblock %}</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -16,11 +16,19 @@
                 <li><a href="#">Shop</a></li>
                 <li><a href="#">Producers</a></li>
                 {% if user_name %}
+                    {% if user_type == 'producer' %}
+                        <li>
+                            <a href="{% url 'producer_dashboard' %}" class="btn-manage">Manage {{ user_name }}</a>
+                        </li>
+                    {% endif %}
                     <li class="user-menu">
                         <button class="user-greeting" onclick="toggleUserDropdown()">
                             Hello, <span class="user-name">{{ user_name }}</span>
                         </button>
                         <div class="user-dropdown" id="userDropdown">
+                            {% if user_type == 'producer' %}
+                                <a href="{% url 'producer_dashboard' %}" class="dropdown-item">Dashboard</a>
+                            {% endif %}
                             <a href="{% url 'logout' %}" class="dropdown-item">Sign Out</a>
                         </div>
                     </li>
