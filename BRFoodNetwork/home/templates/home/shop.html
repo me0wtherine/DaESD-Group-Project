@@ -1,0 +1,52 @@
+{% extends "home/base.html" %}
+
+{% block title %}Home - Bristol Regional Food Network{% endblock %}
+
+{% block content %}
+<!-- Search Section -->
+<section class="search-section">
+    <div class="search-area">
+        <h1>Search for local products...</h1>
+        <form class="search-form" method="get" action="#">
+            <div class="search-input-wrapper">
+                <span class="search-icon">&#9906;</span>
+                <input type="text" name="q" placeholder="Search for local products..." />
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+        <div class="category-filters">
+            <a href="?category=vegetables" class="btn btn-outline {% if selected_category == 'vegetables' %}active{% endif %}">Vegetables</a>
+            <a href="?category=dairy" class="btn btn-outline {% if selected_category == 'dairy' %}active{% endif %}">Dairy</a>
+            <a href="?category=bakery" class="btn btn-outline {% if selected_category == 'bakery' %}active{% endif %}">Bakery</a>
+            <a href="?" class="btn btn-outline {% if not selected_category %}active{% endif %}">All Products</a>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Items & Producers -->
+<section class="content-section">
+    <div class="content-row">
+        <!-- Popular Items -->
+        <div class="popular-items">
+            <h2>{% if selected_category %}{{ selected_category|title }} Products{% else %}Popular Items{% endif %}</h2>
+            <div class="product-grid">
+                {% for item in products %}
+                <div class="product-card">
+                    <div class="product-image-placeholder">
+                        <span>Product Image</span>
+                    </div>
+                    <div class="product-info">
+                        <h3>{{ item.name }}</h3>
+                        <p class="product-farm">{{ item.farm }} &middot; {{ item.distance }} miles</p>
+                        <p class="product-price">&pound;{{ item.price }}</p>
+                        <button class="btn btn-add">Add to Basket</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}

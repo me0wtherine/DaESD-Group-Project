@@ -13,8 +13,8 @@
         <div class="nav-container">
             <a href="{% url 'home' %}" class="logo">BRFN</a>
             <ul class="nav-links">
-                <li><a href="#">Shop</a></li>
-                <li><a href="#">Producers</a></li>
+                <li><a href="{% url 'shop' %}">Shop</a></li>
+                <li><a href="{% url 'producers' %}">Producers</a></li>
                 {% if user_name %}
                     {% if user_type == 'producer' %}
                         <li>
