@@ -15,10 +15,10 @@
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
         <div class="category-filters">
-            <button class="btn btn-outline">Vegetables</button>
-            <button class="btn btn-outline">Dairy</button>
-            <button class="btn btn-outline">Bakery</button>
-            <button class="btn btn-outline">Preserves</button>
+            <a href="?category=vegetables" class="btn btn-outline {% if selected_category == 'vegetables' %}active{% endif %}">Vegetables</a>
+            <a href="?category=dairy" class="btn btn-outline {% if selected_category == 'dairy' %}active{% endif %}">Dairy</a>
+            <a href="?category=bakery" class="btn btn-outline {% if selected_category == 'bakery' %}active{% endif %}">Bakery</a>
+            <a href="?" class="btn btn-outline {% if not selected_category %}active{% endif %}">All Products</a>
         </div>
     </div>
 </section>
@@ -28,7 +28,7 @@
     <div class="content-row">
         <!-- Popular Items -->
         <div class="popular-items">
-            <h2>Popular Items</h2>
+            <h2>{% if selected_category %}{{ selected_category|title }} Products{% else %}Popular Items{% endif %}</h2>
             <div class="product-grid">
                 {% for item in popular_items %}
                 <div class="product-card">

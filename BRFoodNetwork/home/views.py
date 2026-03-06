@@ -1,28 +1,47 @@
 from django.shortcuts import render
+from products.models import Products
+from accounts.models import Producers
 
 
 def home(request):
-    """Homepage with popular items and nearby producers (placeholder data)."""
+    """Homepage with popular items and nearby producers."""
+    # Get category filter from query parameters
+    category = request.GET.get('category', '')
+    
+    # Fetch products from database
+    if category:
+        products = Products.objects.filter(category=category, is_available=True)
+    else:
+        # Show popular items (top 6 most recently available products)
+        products = Products.objects.filter(is_available=True).order_by('-created_at')[:6]
+    
+    # Convert products to display format
     popular_items = [
-        {'name': 'Organic Carrots', 'farm': 'Green Acres Farm', 'distance': 5, 'price': '2.50'},
-        {'name': 'Sourdough Loaf', 'farm': 'Bristol Bakery', 'distance': 3, 'price': '4.00'},
-        {'name': 'Free Range Eggs', 'farm': 'Hillside Farm', 'distance': 7, 'price': '3.20'},
-        {'name': 'Raw Honey', 'farm': 'Avon Apiaries', 'distance': 8, 'price': '6.50'},
-        {'name': 'Goat Cheese', 'farm': 'Mendip Dairy', 'distance': 12, 'price': '5.00'},
-        {'name': 'Apple Juice', 'farm': 'Chew Valley Orchards', 'distance': 10, 'price': '3.80'},
+        {
+            'id': product.id,
+            'name': product.name,
+            'farm': product.producer.business_name if product.producer else 'Unknown',
+            'distance': 5,  # Placeholder - would need location data to calculate
+            'price': str(product.price),
+            'category': product.category,
+        }
+        for product in products
     ]
-
+    
+    # Fetch nearby producers
     nearby_producers = [
-        {'name': 'Green Acres Farm', 'distance': 5},
-        {'name': 'Bristol Bakery', 'distance': 3},
-        {'name': 'Hillside Farm', 'distance': 7},
-        {'name': 'Avon Apiaries', 'distance': 8},
-        {'name': 'Mendip Dairy', 'distance': 12},
+        {
+            'id': producer.id,
+            'name': producer.business_name,
+            'distance': 5,  # Placeholder - would need location data to calculate
+        }
+        for producer in Producers.objects.all()[:5]
     ]
 
     return render(request, 'home/home.html', {
         'popular_items': popular_items,
         'nearby_producers': nearby_producers,
+        'selected_category': category,
     })
 
 

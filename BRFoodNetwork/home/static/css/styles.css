@@ -53,6 +53,12 @@ a:hover {
     color: #2e7d32;
 }
 
+.btn-outline.active {
+    background-color: #2e7d32;
+    color: #fff;
+    border-color: #2e7d32;
+}
+
 .btn-outline-sm {
     display: inline-block;
     padding: 6px 16px;
