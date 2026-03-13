@@ -152,21 +152,25 @@ def checkout(request):
         return redirect("cart:detail")
 
     if request.method == "POST":
-        delivery_address = request.POST.get("delivery_address", "").strip()
+        address = request.POST.get("address", "").strip()
+        postcode = request.POST.get("postcode", "").strip()
         fulfillment_type = request.POST.get("fulfillment_type", "delivery")
         delivery_date_str = request.POST.get("delivery_date", "")
 
         # Validate inputs
-        if not delivery_address:
+        if not address or not postcode:
             return render(
                 request,
                 "cart/checkout.html",
                 {
                     "items": items,
                     "customer": customer,
-                    "error": "Delivery address is required.",
+                    "error": "Address and postcode are required.",
                 },
             )
+        
+        # Combine address and postcode
+        delivery_address = f"{address}, {postcode}"
 
         if fulfillment_type not in ["delivery", "collection"]:
             return render(
