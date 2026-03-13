@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -6,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from accounts.models import Accounts
 from cart.models import Cart, CartItem
 from products.models import Products
+from orders.models import Orders, OrderItem
 
 
 def _get_customer_cart(user_id):
@@ -126,3 +128,125 @@ def remove_from_cart(request, item_id):
         pass
 
     return redirect("cart:detail")
+
+
+def checkout(request):
+    """Handle checkout process."""
+    user_id = request.session.get("user_id")
+    user_type = request.session.get("user_type", "customer")
+
+    if not user_id or user_type != "customer":
+        return redirect("welcome")
+
+    customer = Accounts.objects.filter(id=user_id).first()
+    if not customer:
+        request.session.flush()
+        return redirect("welcome")
+
+    cart = _get_customer_cart(user_id)
+    if not cart:
+        return redirect("cart:detail")
+
+    items = cart.items.select_related("product").all()
+    if not items.exists():
+        return redirect("cart:detail")
+
+    if request.method == "POST":
+        delivery_address = request.POST.get("delivery_address", "").strip()
+        fulfillment_type = request.POST.get("fulfillment_type", "delivery")
+        delivery_date_str = request.POST.get("delivery_date", "")
+
+        # Validate inputs
+        if not delivery_address:
+            return render(
+                request,
+                "cart/checkout.html",
+                {
+                    "items": items,
+                    "customer": customer,
+                    "error": "Delivery address is required.",
+                },
+            )
+
+        if fulfillment_type not in ["delivery", "collection"]:
+            return render(
+                request,
+                "cart/checkout.html",
+                {"items": items, "customer": customer, "error": "Invalid fulfillment type."},
+            )
+
+        # Validate delivery date
+        try:
+            delivery_date = datetime.strptime(delivery_date_str, "%Y-%m-%d")
+        except ValueError:
+            return render(
+                request,
+                "cart/checkout.html",
+                {
+                    "items": items,
+                    "customer": customer,
+                    "error": "Invalid delivery date format.",
+                },
+            )
+
+        # Check if date is at least 48 hours in the future
+        now = datetime.now()
+        min_delivery_date = now + timedelta(hours=48)
+        if delivery_date < min_delivery_date.replace(hour=0, minute=0, second=0, microsecond=0):
+            return render(
+                request,
+                "cart/checkout.html",
+                {
+                    "items": items,
+                    "customer": customer,
+                    "error": "Delivery/collection date must be at least 48 hours from now.",
+                },
+            )
+
+        # Calculate total
+        total = Decimal("0.00")
+        for item in items:
+            total += item.product.price * item.quantity
+
+        # Create order
+        order = Orders.objects.create(
+            user=customer,
+            delivery_address=delivery_address,
+            fulfillment_type=fulfillment_type,
+            delivery_date=delivery_date,
+            total_price=total,
+            order_status="pending",
+        )
+
+        # Create order items
+        for item in items:
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price,
+            )
+
+        # Clear the cart
+        cart.items.all().delete()
+
+        return render(request, "cart/order_confirmed.html", {"order": order})
+
+    # Calculate total for display
+    total = Decimal("0.00")
+    for item in items:
+        total += item.product.price * item.quantity
+
+    # Calculate minimum delivery date (48 hours from now)
+    min_date = (datetime.now() + timedelta(hours=48)).strftime("%Y-%m-%d")
+
+    return render(
+        request,
+        "cart/checkout.html",
+        {
+            "items": items,
+            "total": total,
+            "customer": customer,
+            "min_date": min_date,
+        },
+    )

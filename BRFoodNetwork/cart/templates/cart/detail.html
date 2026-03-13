@@ -241,6 +241,7 @@
         <span class="summary-label">Total:</span>
         <span class="summary-value">£{{ total }}</span>
       </div>
+      <a href="{% url 'cart:checkout' %}" style="display: block; background-color: #2ecc71; color: white; padding: 12px; border-radius: 4px; text-align: center; text-decoration: none; margin-top: 20px; font-weight: 600; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#27ae60'" onmouseout="this.style.backgroundColor='#2ecc71'">Proceed to Checkout</a>
     </div>
   {% else %}
     <div class="empty-basket">
