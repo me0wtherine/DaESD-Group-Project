@@ -24,6 +24,7 @@ def home(request):
             'distance': 5,  # Placeholder - would need location data to calculate
             'price': str(product.price),
             'category': product.category,
+            'image': product.image.url if product.image else None,
         }
         for product in products
     ]
@@ -68,6 +69,7 @@ def shop(request):
             'farm': product.producer.business_name if product.producer else 'Unknown',
             'price': str(product.price),
             'category': product.category,
+            'image': product.image.url if product.image else None,
         }
         for product in products
     ]

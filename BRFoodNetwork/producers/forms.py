@@ -49,8 +49,16 @@ class ProductForm(forms.ModelForm):
             'available_to': forms.DateInput(attrs={'type': 'date'}),
         }
         labels = {
+            'name': 'Product Name',
+            'category': 'Category',
+            'description': 'Description',
+            'price': 'Price (£)',
+            'unit': 'Unit',
+            'stock_quantity': 'Stock Quantity',
             'is_available': 'Available for sale',
             'is_organic': 'Organic certified',
+            'allergens': 'Allergens',
+            'image': 'Product Image',
             'available_from': 'Available From',
             'available_to': 'Available To',
         }
