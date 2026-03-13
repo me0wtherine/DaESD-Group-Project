@@ -2,21 +2,251 @@
 {% block title %}Your Basket{% endblock %}
 
 {% block content %}
-<h1>Your Basket</h1>
+<style>
+  .basket-container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+  }
+  
+  .basket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 15px;
+  }
+  
+  .basket-header h1 {
+    margin: 0;
+    font-size: 2em;
+    color: #333;
+  }
+  
+  .basket-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .basket-items-table thead {
+    background-color: #f5f5f5;
+    font-weight: bold;
+  }
+  
+  .basket-items-table th,
+  .basket-items-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .basket-items-table th {
+    font-size: 0.9em;
+    color: #666;
+    text-transform: uppercase;
+  }
+  
+  .product-name {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .product-farm {
+    font-size: 0.85em;
+    color: #999;
+    margin-top: 3px;
+  }
+  
+  .quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .quantity-input {
+    width: 60px;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.95em;
+  }
+  
+  .quantity-btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+  }
+  
+  .quantity-btn:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .price {
+    font-weight: 600;
+    color: #333;
+    min-width: 80px;
+    text-align: right;
+  }
+  
+  .item-total {
+    font-weight: 600;
+    color: #2ecc71;
+    min-width: 80px;
+    text-align: right;
+  }
+  
+  .remove-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s;
+  }
+  
+  .remove-btn:hover {
+    background-color: #c0392b;
+  }
+  
+  .basket-summary {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 20px;
+    max-width: 400px;
+    margin-left: auto;
+  }
+  
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .summary-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .summary-label {
+    color: #666;
+  }
+  
+  .summary-value {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .total-row .summary-value {
+    font-size: 1.3em;
+    color: #2ecc71;
+  }
+  
+  .empty-basket {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+  }
+  
+  .empty-basket p {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+  }
+  
+  .continue-shopping-btn {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+  }
+  
+  .continue-shopping-btn:hover {
+    background-color: #2980b9;
+  }
+</style>
 
-{% if items %}
-  <ul>
-    {% for item in items %}
-      <li>
-        <strong>{{ item.product.name }}</strong>
-        — Qty: {{ item.quantity }}
-        — £{{ item.product.price }}
-      </li>
-    {% endfor %}
-  </ul>
+<div class="basket-container">
+  <div class="basket-header">
+    <h1>Your Basket</h1>
+  </div>
 
-  <p><strong>Total:</strong> £{{ total }}</p>
-{% else %}
-  <p>Your basket is empty.</p>
-{% endif %}
+  {% if items %}
+    <table class="basket-items-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td>
+              <div class="product-name">{{ item.product.name }}</div>
+              <div class="product-farm">{{ item.product.producer.business_name }} • {{ item.product.unit }}</div>
+            </td>
+            <td class="price">£{{ item.product.price }}</td>
+            <td>
+              <form method="POST" action="{% url 'cart:update' item.id %}" style="display: flex; gap: 8px;">
+                {% csrf_token %}
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="quantity-input">
+                <button type="submit" class="quantity-btn">Update</button>
+              </form>
+            </td>
+            <td class="item-total">£{% widthratio item.product.price 1 item.quantity %}</td>
+            <td>
+              <form method="POST" action="{% url 'cart:remove' item.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="remove-btn">Remove</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="basket-summary">
+      <div class="summary-row">
+        <span class="summary-label">Subtotal:</span>
+        <span class="summary-value">£{{ total }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Shipping:</span>
+        <span class="summary-value">Free</span>
+      </div>
+      <div class="summary-row total-row">
+        <span class="summary-label">Total:</span>
+        <span class="summary-value">£{{ total }}</span>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-basket">
+      <p>Your basket is empty.</p>
+      <a href="{% url 'shop' %}" class="continue-shopping-btn">Continue Shopping</a>
+    </div>
+  {% endif %}
+</div>
 {% endblock %}

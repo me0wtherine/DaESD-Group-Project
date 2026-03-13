@@ -39,7 +39,11 @@
                         <h3>{{ item.name }}</h3>
                         <p class="product-farm">{{ item.farm }} &middot; {{ item.distance }} miles</p>
                         <p class="product-price">&pound;{{ item.price }}</p>
-                        <button class="btn btn-add">Add to Basket</button>
+                        <form method="POST" action="{% url 'cart:add' item.id %}" style="display: flex; gap: 8px; align-items: center;">
+                            {% csrf_token %}
+                            <input type="number" name="quantity" value="1" min="1" style="width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+                            <button type="submit" class="btn btn-add">Add to Basket</button>
+                        </form>
                     </div>
                 </div>
                 {% endfor %}
