@@ -1,6 +1,25 @@
 from django import forms
 from accounts.models import Producers
 from products.models import Products
+from django.forms import CheckboxSelectMultiple
+
+
+ALLERGEN_CHOICES = [
+    ('celery', 'Celery'),
+    ('gluten', 'Gluten'),
+    ('lupin', 'Lupin'),
+    ('crustaceans', 'Crustaceans'),
+    ('milk', 'Milk'),
+    ('sulphur_dioxide', 'Sulphur Dioxide'),
+    ('sesame', 'Sesame'),
+    ('molluscs', 'Molluscs'),
+    ('mustard', 'Mustard'),
+    ('nuts', 'Nuts'),
+    ('egg', 'Egg'),
+    ('fish', 'Fish'),
+    ('soybeans', 'Soybeans'),
+    ('peanuts', 'Peanuts'),
+]
 
 
 class StoreInfoForm(forms.ModelForm):
@@ -44,7 +63,7 @@ class ProductForm(forms.ModelForm):
             'price': forms.NumberInput(attrs={'placeholder': '0.00', 'step': '0.01', 'min': '0'}),
             'unit': forms.TextInput(attrs={'placeholder': 'e.g. per kg, per bunch, each'}),
             'stock_quantity': forms.NumberInput(attrs={'min': '0'}),
-            'allergens': forms.TextInput(attrs={'placeholder': 'e.g. nuts, gluten, dairy'}),
+            'allergens': CheckboxSelectMultiple(choices=ALLERGEN_CHOICES),
             'available_from': forms.DateInput(attrs={'type': 'date'}),
             'available_to': forms.DateInput(attrs={'type': 'date'}),
         }
