@@ -70,6 +70,8 @@ def shop(request):
             'price': str(product.price),
             'category': product.category,
             'image': product.image.url if product.image else None,
+            'is_organic': product.is_organic if "Organic Certified" else None,
+            'allergens': product.allergens,
         }
         for product in products
     ]

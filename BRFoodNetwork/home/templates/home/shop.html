@@ -43,6 +43,12 @@
                         <h3>{{ item.name }}</h3>
                         <p class="product-farm">{{ item.farm }} &middot; {{ item.distance }} miles</p>
                         <p class="product-price">&pound;{{ item.price }}</p>
+                        {% if item.allergens %}
+                            <p class="product-allergens">{{item.allergens}}</p>
+                        {% endif %}
+                        {% if item.is_organic %}
+                            <p class="product-organic-certification">Organic Certified</p>
+                        {% endif %}
                         <form method="POST" action="{% url 'cart:add' item.id %}" style="display: flex; gap: 8px; align-items: center;">
                             {% csrf_token %}
                             <input type="number" name="quantity" value="1" min="1" style="width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
