@@ -164,18 +164,21 @@ def delete_product(request, product_id):
 
 @producer_required
 def producer_orders(request):
-    """Display all orders for the logged-in producer"""
-    from orders.models import Orders
-    
+    """Display all orders that contain products from the logged-in producer."""
+    from orders.models import OrderItem
+
     producer = get_object_or_404(Producers, id=request.session['user_id'])
-    
-    # Get all orders - in a complete system, you would filter by products from this producer
-    # For now, showing all orders that contain products from this producer
-    all_orders = Orders.objects.all().order_by('-order_date')
-    
+
+    order_items = (
+        OrderItem.objects
+        .select_related('order', 'product', 'order__user')
+        .filter(product__producer=producer)
+        .order_by('-order__order_date')
+    )
+
     return render(request, 'producers/producers_orders.html', {
         'producer': producer,
-        'orders': all_orders,
+        'order_items': order_items,
     })
 
 

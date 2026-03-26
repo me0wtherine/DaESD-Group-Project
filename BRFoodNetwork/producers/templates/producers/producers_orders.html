@@ -6,7 +6,6 @@
 {% block content %}
 <div class="manage-store-wrapper">
 
-    <!-- Sub-header bar -->
     <div class="manage-topbar">
         <h1 class="manage-title">Orders</h1>
         <div class="manage-topbar-right">
@@ -20,7 +19,6 @@
 
     <div class="manage-layout">
 
-        <!-- ===== Left Sidebar ===== -->
         <aside class="manage-sidebar">
             <ul class="sidebar-nav">
                 <li><a href="{% url 'producer_dashboard' %}" class="sidebar-link">
@@ -38,69 +36,63 @@
             </ul>
         </aside>
 
-        <!-- ===== Main Content ===== -->
         <div class="manage-main">
 
-            {% if Orders %}
-                {% for Order in Orders %}
+            {% if order_items %}
+                {% for item in order_items %}
                 <div class="order-card">
-                    <!-- Order Header -->
                     <div class="order-header">
-                        <h2 class="order-number">Order {{ order.id|stringformat:"05d" }}</h2>
+                        <h2 class="order-number">Order {{ item.order.id|stringformat:"05d" }}</h2>
                     </div>
 
-                    <!-- Order Details Grid -->
                     <div class="order-details-grid">
-                        <!-- Left Column -->
                         <div class="order-left">
                             <div class="order-field">
                                 <label class="order-label">Customer Name:</label>
-                                <p class="order-value">{{ order.user.name }}</p>
+                                <p class="order-value">{{ item.order.user.name }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Customer Contact:</label>
-                                <p class="order-value">{{ order.user.phone_number }}</p>
+                                <p class="order-value">{{ item.order.user.phone_number }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Delivery Address:</label>
-                                <p class="order-value">{{ order.user.address }}</p>
+                                <p class="order-value">{{ item.order.delivery_address }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Pickup or Delivery:</label>
-                                <p class="order-value">Delivery</p>
+                                <p class="order-value">{{ item.order.fulfillment_type|title }}</p>
                             </div>
                         </div>
 
-                        <!-- Right Column -->
                         <div class="order-right">
                             <div class="order-field">
                                 <label class="order-label">Order Date:</label>
-                                <p class="order-value">{{ order.order_date|date:"d/m/Y" }}</p>
+                                <p class="order-value">{{ item.order.order_date|date:"d/m/Y" }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Delivery Date:</label>
-                                <p class="order-value">{{ order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
+                                <p class="order-value">{{ item.order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Status:</label>
                                 <div class="status-field">
-                                    <span class="status-badge status-{{ order.order_status }}">{{ order.get_order_status_display }}</span>
+                                    <span class="status-badge status-{{ item.order.order_status }}">
+                                        {{ item.order.get_order_status_display }}
+                                    </span>
                                     <button class="status-edit-btn" title="Edit status">✏️</button>
                                 </div>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Special Instructions:</label>
-                                <textarea class="order-instructions" readonly></textarea>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Items Summary -->
                     <div class="order-summary">
-                        <p class="summary-text">Items Ordered: <strong>0</strong> | Total Price: <strong>£{{ order.total_price }}</strong></p>
+                        <p class="summary-text">
+                            Items Ordered: <strong>{{ item.quantity }}</strong> |
+                            Item Total: <strong>£{{ item.price }}</strong>
+                        </p>
                     </div>
 
-                    <!-- Order Items Table -->
                     <div class="order-items-table">
                         <table>
                             <thead>
@@ -112,7 +104,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="3" class="no-items">Items data not available in current system. Please update order items structure.</td>
+                                    <td>{{ item.product.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>£{{ item.price }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -127,8 +121,8 @@
                 </div>
             {% endif %}
 
-        </div><!-- /manage-main -->
-    </div><!-- /manage-layout -->
+        </div>
+    </div>
 </div>
 
 <style>
@@ -229,17 +223,6 @@
         padding: 0;
     }
 
-    .order-instructions {
-        width: 100%;
-        height: 80px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 13px;
-        resize: none;
-        background: white;
-    }
-
     .order-summary {
         background: white;
         padding: 12px 16px;
@@ -305,4 +288,3 @@
 </style>
 
 {% endblock %}
-

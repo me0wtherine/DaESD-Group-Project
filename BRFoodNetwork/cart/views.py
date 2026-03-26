@@ -1,7 +1,6 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 from accounts.models import Accounts
@@ -11,7 +10,7 @@ from orders.models import Orders, OrderItem
 
 
 def _get_customer_cart(user_id):
-    """Helper function to get customer's cart."""
+    """Get the logged-in customer's cart."""
     customer = Accounts.objects.filter(id=user_id).first()
     if not customer:
         return None
@@ -22,8 +21,7 @@ def _get_customer_cart(user_id):
 def cart_detail(request):
     user_id = request.session.get("user_id")
     user_type = request.session.get("user_type", "customer")
-
-    # so logged in customers can see their basket
+# so logged in customers can see their basket
     if not user_id or user_type != "customer":
         return redirect("welcome")
 
@@ -43,7 +41,7 @@ def cart_detail(request):
 
 @require_http_methods(["POST"])
 def add_to_cart(request, product_id):
-    """Add a product to the cart."""
+    """Add a product to the logged-in customer's cart."""
     user_id = request.session.get("user_id")
     user_type = request.session.get("user_type", "customer")
 
@@ -54,32 +52,32 @@ def add_to_cart(request, product_id):
     if not cart:
         return redirect("welcome")
 
+    product = get_object_or_404(Products, id=product_id)
+
     try:
         quantity = int(request.POST.get("quantity", 1))
         if quantity < 1:
             quantity = 1
-    except ValueError:
+    except (TypeError, ValueError):
         quantity = 1
 
-    try:
-        product = Products.objects.get(id=product_id)
-    except Products.DoesNotExist:
-        return redirect("cart:detail")
-
-    # Add or update item in cart
     cart_item, created = CartItem.objects.get_or_create(
-        cart=cart, product=product, defaults={"quantity": quantity}
+        cart=cart,
+        product=product,
+        defaults={"quantity": quantity},
     )
+
     if not created:
         cart_item.quantity += quantity
         cart_item.save()
 
-    return redirect("cart:detail")
+    # send user back to the page they clicked from
+    return redirect(request.META.get("HTTP_REFERER", "cart:detail"))
 
 
 @require_http_methods(["POST"])
 def update_quantity(request, item_id):
-    """Update the quantity of an item in the cart."""
+    """Update quantity of an item already in the cart."""
     user_id = request.session.get("user_id")
     user_type = request.session.get("user_type", "customer")
 
@@ -90,16 +88,13 @@ def update_quantity(request, item_id):
     if not cart:
         return redirect("welcome")
 
-    try:
-        item = CartItem.objects.get(id=item_id, cart=cart)
-    except CartItem.DoesNotExist:
-        return redirect("cart:detail")
+    item = get_object_or_404(CartItem, id=item_id, cart=cart)
 
     try:
         quantity = int(request.POST.get("quantity", 1))
         if quantity < 1:
             quantity = 1
-    except ValueError:
+    except (TypeError, ValueError):
         quantity = 1
 
     item.quantity = quantity
@@ -121,11 +116,9 @@ def remove_from_cart(request, item_id):
     if not cart:
         return redirect("welcome")
 
-    try:
-        item = CartItem.objects.get(id=item_id, cart=cart)
+    item = CartItem.objects.filter(id=item_id, cart=cart).first()
+    if item:
         item.delete()
-    except CartItem.DoesNotExist:
-        pass
 
     return redirect("cart:detail")
 
@@ -157,7 +150,6 @@ def checkout(request):
         fulfillment_type = request.POST.get("fulfillment_type", "delivery")
         delivery_date_str = request.POST.get("delivery_date", "")
 
-        # Validate inputs
         if not address or not postcode:
             return render(
                 request,
@@ -168,18 +160,20 @@ def checkout(request):
                     "error": "Address and postcode are required.",
                 },
             )
-        
-        # Combine address and postcode
+
         delivery_address = f"{address}, {postcode}"
 
         if fulfillment_type not in ["delivery", "collection"]:
             return render(
                 request,
                 "cart/checkout.html",
-                {"items": items, "customer": customer, "error": "Invalid fulfillment type."},
+                {
+                    "items": items,
+                    "customer": customer,
+                    "error": "Invalid fulfillment type.",
+                },
             )
 
-        # Validate delivery date
         try:
             delivery_date = datetime.strptime(delivery_date_str, "%Y-%m-%d")
         except ValueError:
@@ -193,7 +187,6 @@ def checkout(request):
                 },
             )
 
-        # Check if date is at least 48 hours in the future
         now = datetime.now()
         min_delivery_date = now + timedelta(hours=48)
         if delivery_date < min_delivery_date.replace(hour=0, minute=0, second=0, microsecond=0):
@@ -206,13 +199,11 @@ def checkout(request):
                     "error": "Delivery/collection date must be at least 48 hours from now.",
                 },
             )
-
-        # Calculate total
+#calculate total
         total = Decimal("0.00")
         for item in items:
             total += item.product.price * item.quantity
 
-        # Create order
         order = Orders.objects.create(
             user=customer,
             delivery_address=delivery_address,
@@ -221,8 +212,7 @@ def checkout(request):
             total_price=total,
             order_status="pending",
         )
-
-        # Create order items
+#creates the order items
         for item in items:
             OrderItem.objects.create(
                 order=order,
@@ -230,18 +220,15 @@ def checkout(request):
                 quantity=item.quantity,
                 price=item.product.price,
             )
-
-        # Clear the cart
+ #clear the cart
         cart.items.all().delete()
 
         return render(request, "cart/order_confirmed.html", {"order": order})
 
-    # Calculate total for display
     total = Decimal("0.00")
     for item in items:
         total += item.product.price * item.quantity
 
-    # Calculate minimum delivery date (48 hours from now)
     min_date = (datetime.now() + timedelta(hours=48)).strftime("%Y-%m-%d")
 
     return render(
