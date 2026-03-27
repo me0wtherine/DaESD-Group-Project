@@ -1,0 +1,183 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Products – {{ producer.business_name }}{% endblock %}
+
+{% block content %}
+<div class="manage-store-wrapper">
+
+    <div class="manage-topbar">
+        <h1 class="manage-title">Products</h1>
+        <div class="manage-topbar-right">
+            <span class="manage-farm-name">{{ producer.business_name }}</span>
+            <span class="status-badge {% if producer.is_active %}active{% else %}inactive{% endif %}">
+                Status: {% if producer.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+            <a href="{% url 'store' producer.id %}" class="btn btn-outline-sm" target="_blank">View Store Page</a>
+        </div>
+    </div>
+
+    <div class="manage-layout">
+
+        <aside class="manage-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="{% url 'producer_dashboard' %}" class="sidebar-link">
+                    <span class="sidebar-icon">📋</span> Store Details</a></li>
+                <li><a href="{% url 'producer_products' %}" class="sidebar-link active">
+                    <span class="sidebar-icon">📦</span> Products</a></li>
+                <li><a href="{% url 'producer_orders' %}" class="sidebar-link">
+                    <span class="sidebar-icon">🧾</span> Orders</a></li>
+                <li><a href="{% url 'surplus_deals' %}" class="sidebar-link">
+                    <span class="sidebar-icon">💰</span> Surplus Deals</a></li>
+                <li><a href="{% url 'producer_payouts' %}" class="sidebar-link">
+                    <span class="sidebar-icon">💳</span> Payouts</a></li>
+                <li><a href="{% url 'weekly_settlements' %}" class="sidebar-link">
+                    <span class="sidebar-icon">📊</span> Weekly Settlements</a></li>
+            </ul>
+        </aside>
+
+        <div class="manage-main">
+
+            <div class="products-table-section">
+                <div class="products-table-header">
+                    <h2 class="section-heading">Your Products</h2>
+                    <div class="products-table-actions">
+                        <a href="{% url 'add_product' %}" class="btn btn-primary">+ Add New Product</a>
+                    </div>
+                </div>
+
+                <div class="products-search-bar">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="productSearch" placeholder="Search products..." onkeyup="filterProducts()">
+                    </div>
+                </div>
+
+                {% if products %}
+                <table class="products-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Product Image</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Availability</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <div class="table-product-img">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                    {% else %}
+                                        <span class="img-placeholder-text">No image</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="product-name-cell">
+                                {{ product.name }}
+                                {% if product.is_organic %}
+                                    <span class="organic-badge">🌿 Organic</span>
+                                {% endif %}
+                                {% if product.is_surplus %}
+                                    <span class="surplus-badge-sm">💰 On Deal</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ product.get_category_display }}</td>
+                            <td>
+                                {% if product.is_surplus and product.surplus_price %}
+                                    <span class="price-original">£{{ product.price }}</span>
+                                    <span class="price-deal">£{{ product.surplus_price }}</span>
+                                {% else %}
+                                    £{{ product.price }}
+                                {% endif %}
+                            </td>
+                            <td>{{ product.stock_quantity }}</td>
+                            <td>
+                                {% if product.available_from and product.available_to %}
+                                    {{ product.available_from|date:"d/m/Y" }} - {{ product.available_to|date:"d/m/Y" }}
+                                {% else %}
+                                    Year-round
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.is_available %}
+                                    <span class="stock-badge available">In Stock</span>
+                                {% else %}
+                                    <span class="stock-badge unavailable">Out of Stock</span>
+                                {% endif %}
+                            </td>
+                            <td class="table-actions-cell">
+                                <a href="{% url 'edit_product' product.id %}" class="table-action-btn" title="Edit">✏️</a>
+                                <form method="post" action="{% url 'delete_product' product.id %}" class="inline-form" onsubmit="return confirm('Remove this product?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="table-action-btn delete" title="Delete">🗑️</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <p class="empty-icon">📦</p>
+                    <h3>No products listed yet</h3>
+                    <p>Start adding products so customers can discover them.</p>
+                    <a href="{% url 'add_product' %}" class="btn btn-primary">+ Add Your First Product</a>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .organic-badge {
+        display: inline-block;
+        font-size: 11px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 6px;
+    }
+    .surplus-badge-sm {
+        display: inline-block;
+        font-size: 11px;
+        background: #fff3e0;
+        color: #e65100;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 6px;
+    }
+    .price-original {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 13px;
+    }
+    .price-deal {
+        color: #e65100;
+        font-weight: 700;
+        margin-left: 6px;
+    }
+</style>
+
+<script>
+function filterProducts() {
+    const query = document.getElementById('productSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#productsTable tbody tr');
+    rows.forEach(row => {
+        const name = row.querySelector('.product-name-cell');
+        if (name) {
+            row.style.display = name.textContent.toLowerCase().includes(query) ? '' : 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

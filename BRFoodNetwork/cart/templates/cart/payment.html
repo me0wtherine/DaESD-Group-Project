@@ -1,0 +1,370 @@
+{% extends "home/base.html" %}
+{% block title %}Confirm & Pay - Bristol Regional Food Network{% endblock %}
+
+{% block content %}
+<style>
+  .payment-container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+  }
+
+  .payment-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .payment-header h1 {
+    color: #333;
+    font-size: 1.8em;
+    margin-bottom: 5px;
+  }
+
+  .payment-header p {
+    color: #666;
+    font-size: 1em;
+  }
+
+  .payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+
+  .delivery-info {
+    background-color: #f9f9f9;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .delivery-info h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.2em;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .info-row:last-child {
+    border-bottom: none;
+  }
+
+  .info-label {
+    color: #666;
+    font-weight: 600;
+    font-size: 0.95em;
+  }
+
+  .info-value {
+    color: #333;
+    font-weight: 500;
+    text-align: right;
+    max-width: 60%;
+  }
+
+  .order-summary-section {
+    background-color: #f9f9f9;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .order-summary-section h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.2em;
+  }
+
+  .producer-group {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .producer-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .producer-name {
+    font-weight: 600;
+    color: #1b5e20;
+    font-size: 0.95em;
+    margin-bottom: 10px;
+  }
+
+  .producer-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0 6px 15px;
+    font-size: 0.9em;
+  }
+
+  .item-name {
+    color: #333;
+  }
+
+  .item-qty {
+    color: #999;
+    font-size: 0.85em;
+  }
+
+  .item-price {
+    color: #333;
+    font-weight: 500;
+  }
+
+  .producer-subtotal {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0 0 15px;
+    font-size: 0.9em;
+    color: #666;
+    font-weight: 600;
+  }
+
+  .order-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #2e7d32;
+    border-top: 2px solid #ddd;
+    margin-top: 15px;
+  }
+
+  .commission-note {
+    font-size: 0.8em;
+    color: #999;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  .payment-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+  }
+
+  .pay-btn {
+    width: 100%;
+    max-width: 400px;
+    padding: 16px;
+    background-color: #635bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .pay-btn:hover {
+    background-color: #5147e5;
+  }
+
+  .simulation-badge {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    text-align: center;
+    border: 1px solid #ffc107;
+  }
+
+  .back-link {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.95em;
+  }
+
+  .back-link:hover {
+    color: #333;
+    text-decoration: underline;
+  }
+
+  .food-miles-summary {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 12px;
+  }
+
+  .food-miles-header {
+    font-weight: 700;
+    color: #2e7d32;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+  }
+
+  .food-miles-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.85em;
+    color: #333;
+  }
+
+  .food-miles-value {
+    font-weight: 600;
+    color: #2e7d32;
+  }
+
+  @media (max-width: 768px) {
+    .payment-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="payment-container">
+  <div class="payment-header">
+    <h1>Confirm &amp; Pay</h1>
+    <p>Review your order details before completing payment</p>
+  </div>
+
+  <div class="payment-grid">
+    <!-- Delivery / Collection Information -->
+    <div class="delivery-info">
+      <h2>
+        {% if checkout_data.fulfillment_type == 'collection' %}
+          Collection Details
+        {% else %}
+          Delivery Details
+        {% endif %}
+      </h2>
+
+      <div class="info-row">
+        <span class="info-label">Name</span>
+        <span class="info-value">{{ customer.name }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email</span>
+        <span class="info-value">{{ customer.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Phone</span>
+        <span class="info-value">{{ customer.phone_number }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Address</span>
+        <span class="info-value">{{ checkout_data.delivery_address }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Fulfillment</span>
+        <span class="info-value">
+          {% if checkout_data.fulfillment_type == 'collection' %}
+            Collection
+          {% else %}
+            Delivery
+          {% endif %}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">
+          {% if checkout_data.fulfillment_type == 'collection' %}
+            Collection Date
+          {% else %}
+            Delivery Date
+          {% endif %}
+        </span>
+        <span class="info-value">{{ checkout_data.delivery_date }}</span>
+      </div>
+    </div>
+
+    <!-- Order Summary grouped by Producer -->
+    <div class="order-summary-section">
+      <h2>Order Summary</h2>
+
+      {% for group in producers_items %}
+        <div class="producer-group">
+          <div class="producer-name">
+            {{ group.producer.business_name }}
+            {% if group.food_miles is not None %}
+              <span style="font-weight:400;font-size:0.8em;color:#2e7d32;margin-left:8px;">📍 {{ group.food_miles }} miles away</span>
+            {% endif %}
+          </div>
+          {% for item in group.items %}
+            <div class="producer-item">
+              <div>
+                <span class="item-name">{{ item.product.name }}</span>
+                <span class="item-qty"> &times; {{ item.quantity }}</span>
+              </div>
+              <span class="item-price">&pound;{{ item.subtotal|floatformat:2 }}</span>
+            </div>
+          {% endfor %}
+          <div class="producer-subtotal">
+            <span>Subtotal</span>
+            <span>&pound;{{ group.subtotal|floatformat:2 }}</span>
+          </div>
+        </div>
+      {% endfor %}
+
+      <div class="order-total">
+        <span>Total</span>
+        <span>&pound;{{ total|floatformat:2 }}</span>
+      </div>
+
+      <!-- Food Miles Summary -->
+      {% with has_miles=False %}
+      {% for group in producers_items %}
+        {% if group.food_miles is not None %}
+          {% if forloop.first %}
+          <div class="food-miles-summary">
+            <div class="food-miles-header">🌍 Food Miles</div>
+          {% endif %}
+            <div class="food-miles-row">
+              <span>{{ group.producer.business_name }}</span>
+              <span class="food-miles-value">{{ group.food_miles }} mi</span>
+            </div>
+          {% if forloop.last %}
+          </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% endwith %}
+
+      <p class="commission-note">
+        A 5% network commission supports the Bristol Regional Food Network and is included in the price.
+      </p>
+    </div>
+
+    <!-- Payment Actions -->
+    <div class="payment-actions">
+      {% if not stripe_configured %}
+        <div class="simulation-badge">
+          Stripe Test Mode &mdash; Payment will be simulated for development
+        </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'payments:create_checkout_session' %}">
+        {% csrf_token %}
+        <button type="submit" class="pay-btn">
+          {% if stripe_configured %}
+            Pay &pound;{{ total|floatformat:2 }} with Stripe
+          {% else %}
+            Complete Payment &mdash; &pound;{{ total|floatformat:2 }}
+          {% endif %}
+        </button>
+      </form>
+
+      <a href="{% url 'cart:checkout' %}" class="back-link">&larr; Back to checkout</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

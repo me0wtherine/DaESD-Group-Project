@@ -1,0 +1,378 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Surplus Deals – {{ producer.business_name }}{% endblock %}
+
+{% block content %}
+<div class="manage-store-wrapper">
+
+    <div class="manage-topbar">
+        <h1 class="manage-title">Surplus Deals</h1>
+        <div class="manage-topbar-right">
+            <span class="manage-farm-name">{{ producer.business_name }}</span>
+            <span class="status-badge {% if producer.is_active %}active{% else %}inactive{% endif %}">
+                Status: {% if producer.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+            <a href="{% url 'store' producer.id %}" class="btn btn-outline-sm" target="_blank">View Store Page</a>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="manage-messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="manage-layout">
+
+        <aside class="manage-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="{% url 'producer_dashboard' %}" class="sidebar-link">
+                    <span class="sidebar-icon">📋</span> Store Details</a></li>
+                <li><a href="{% url 'producer_products' %}" class="sidebar-link">
+                    <span class="sidebar-icon">📦</span> Products</a></li>
+                <li><a href="{% url 'producer_orders' %}" class="sidebar-link">
+                    <span class="sidebar-icon">🧾</span> Orders</a></li>
+                <li><a href="{% url 'surplus_deals' %}" class="sidebar-link active">
+                    <span class="sidebar-icon">💰</span> Surplus Deals</a></li>
+                <li><a href="{% url 'producer_payouts' %}" class="sidebar-link">
+                    <span class="sidebar-icon">💳</span> Payouts</a></li>
+                <li><a href="{% url 'weekly_settlements' %}" class="sidebar-link">
+                    <span class="sidebar-icon">📊</span> Weekly Settlements</a></li>
+            </ul>
+        </aside>
+
+        <div class="manage-main">
+
+            <!-- Info banner -->
+            <div class="surplus-info-banner">
+                <h3>🌿 Reduce Food Waste, Offer Great Deals</h3>
+                <p>Put products that are approaching their best-before date on a discounted deal. Customers love a bargain and you reduce waste — everyone wins!</p>
+            </div>
+
+            <!-- Active Deals -->
+            <div class="surplus-section">
+                <h2 class="section-heading">Active Surplus Deals</h2>
+
+                {% if active_deals %}
+                <div class="surplus-cards">
+                    {% for product in active_deals %}
+                    <div class="surplus-card active-deal">
+                        <div class="surplus-card-img">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                            {% else %}
+                                <div class="surplus-img-placeholder">📦</div>
+                            {% endif %}
+                        </div>
+                        <div class="surplus-card-body">
+                            <h4 class="surplus-product-name">{{ product.name }}</h4>
+                            <p class="surplus-category">{{ product.get_category_display }}</p>
+                            <div class="surplus-pricing">
+                                <span class="original-price">£{{ product.price }}</span>
+                                <span class="deal-price">£{{ product.surplus_price }}</span>
+                                <span class="deal-discount">DEAL</span>
+                            </div>
+                            <p class="surplus-bb">
+                                Best before: <strong>{{ product.best_before|date:"d/m/Y" }}</strong>
+                            </p>
+                            <p class="surplus-stock">Stock: {{ product.stock_quantity }} remaining</p>
+                            <form method="post" class="surplus-remove-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ product.id }}">
+                                <input type="hidden" name="action" value="remove_deal">
+                                <button type="submit" class="btn btn-outline-danger-sm">Remove Deal</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state-sm">
+                    <p>No active surplus deals. Select a product below to create one.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Available Products -->
+            <div class="surplus-section">
+                <h2 class="section-heading">Add a Product to Surplus Deals</h2>
+
+                {% if available_for_deals %}
+                <div class="surplus-cards">
+                    {% for product in available_for_deals %}
+                    <div class="surplus-card">
+                        <div class="surplus-card-img">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                            {% else %}
+                                <div class="surplus-img-placeholder">📦</div>
+                            {% endif %}
+                        </div>
+                        <div class="surplus-card-body">
+                            <h4 class="surplus-product-name">{{ product.name }}</h4>
+                            <p class="surplus-category">{{ product.get_category_display }} · £{{ product.price }} · Stock: {{ product.stock_quantity }}</p>
+
+                            <button type="button" class="btn btn-outline-sm set-deal-btn" onclick="toggleDealForm(this)">Set Deal Price</button>
+
+                            <form method="post" class="deal-form" style="display:none;">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ product.id }}">
+                                <input type="hidden" name="action" value="set_deal">
+
+                                <div class="deal-form-row">
+                                    <label>Best Before Date</label>
+                                    <input type="date" name="best_before" min="{{ today }}" required value="{{ product.best_before|date:'Y-m-d' }}">
+                                </div>
+                                <div class="deal-form-row">
+                                    <label>Deal Price (£)</label>
+                                    <input type="number" name="surplus_price" step="0.01" min="0.01" max="{{ product.price }}" required placeholder="e.g. {{ product.price|floatformat:2 }}">
+                                    <span class="deal-hint">Original: £{{ product.price }}</span>
+                                </div>
+                                <div class="deal-form-actions">
+                                    <button type="submit" class="btn btn-primary-sm">Activate Deal</button>
+                                    <button type="button" class="btn btn-outline-sm" onclick="toggleDealForm(this)">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state-sm">
+                    <p>All your products are already on surplus deals, or you have no available products. <a href="{% url 'add_product' %}">Add a product</a> first.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .surplus-info-banner {
+        background: #e8f5e9;
+        border-left: 4px solid #2e7d32;
+        padding: 20px 24px;
+        border-radius: 8px;
+        margin-bottom: 28px;
+    }
+    .surplus-info-banner h3 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        color: #2e7d32;
+    }
+    .surplus-info-banner p {
+        margin: 0;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .surplus-section {
+        margin-bottom: 36px;
+    }
+
+    .surplus-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .surplus-card {
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .surplus-card.active-deal {
+        border-color: #2e7d32;
+        border-width: 2px;
+    }
+
+    .surplus-card-img {
+        height: 140px;
+        background: #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .surplus-card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .surplus-img-placeholder {
+        font-size: 40px;
+        color: #bbb;
+    }
+
+    .surplus-card-body {
+        padding: 16px;
+        flex: 1;
+    }
+    .surplus-product-name {
+        margin: 0 0 4px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+    .surplus-category {
+        font-size: 13px;
+        color: #777;
+        margin: 0 0 12px 0;
+    }
+
+    .surplus-pricing {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 14px;
+    }
+    .deal-price {
+        font-size: 20px;
+        font-weight: 700;
+        color: #e65100;
+    }
+    .deal-discount {
+        background: #fff3e0;
+        color: #e65100;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .surplus-bb {
+        font-size: 13px;
+        color: #555;
+        margin: 4px 0;
+    }
+    .surplus-stock {
+        font-size: 13px;
+        color: #777;
+        margin: 0 0 12px 0;
+    }
+
+    .surplus-remove-form {
+        margin-top: 8px;
+    }
+
+    /* Deal form */
+    .deal-form {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid #e0e0e0;
+    }
+    .deal-form-row {
+        margin-bottom: 12px;
+    }
+    .deal-form-row label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 4px;
+    }
+    .deal-form-row input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+    .deal-hint {
+        display: block;
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+    }
+    .deal-form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .set-deal-btn {
+        margin-top: 4px;
+    }
+
+    .btn-primary-sm {
+        display: inline-block;
+        padding: 8px 16px;
+        background: #2e7d32;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .2s;
+    }
+    .btn-primary-sm:hover {
+        background: #1b5e20;
+    }
+
+    .btn-outline-danger-sm {
+        display: inline-block;
+        padding: 8px 16px;
+        background: transparent;
+        color: #c62828;
+        border: 1px solid #c62828;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .btn-outline-danger-sm:hover {
+        background: #c62828;
+        color: #fff;
+    }
+
+    .empty-state-sm {
+        background: #f9f9f9;
+        border: 1px dashed #ccc;
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        color: #777;
+    }
+    .empty-state-sm a {
+        color: #2e7d32;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .surplus-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+function toggleDealForm(btn) {
+    var card = btn.closest('.surplus-card');
+    var form = card.querySelector('.deal-form');
+    var setBtn = card.querySelector('.set-deal-btn');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        setBtn.style.display = 'none';
+    } else {
+        form.style.display = 'none';
+        setBtn.style.display = '';
+    }
+}
+</script>
+{% endblock %}

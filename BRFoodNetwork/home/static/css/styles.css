@@ -352,6 +352,37 @@ a:hover {
     margin-bottom: 10px;
 }
 
+/* --- Surplus Deal Pricing --- */
+.product-price-deal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.price-was {
+    font-size: 0.95rem;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.price-now {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e65100;
+}
+
+.deal-tag {
+    display: inline-block;
+    background: #fff3e0;
+    color: #e65100;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
 /* --- Producers Near You --- */
 .producers-nearby {
     width: 320px;

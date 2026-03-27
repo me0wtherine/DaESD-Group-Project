@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import make_password, check_password
 
 from .forms import SignupForm, ProducerSignupForm, CustomerLoginForm, ProducerLoginForm
 from .models import Accounts, Producers
+from .geocoding import geocode_address, is_within_bristol_radius
 from orders.models import Orders
 
 
@@ -24,6 +25,19 @@ def signup_view(request):
         if form.is_valid():
             account = form.save(commit=False)
             account.password = make_password(form.cleaned_data['password'])
+
+            # Geocode address and enforce 20-mile radius
+            lat, lng = geocode_address(account.address, account.postal_code)
+            if lat is None or lng is None:
+                messages.error(request, 'We could not verify your address. Please enter a valid UK address and postal code.')
+                return render(request, 'registration/signup.html', {'form': form})
+
+            if not is_within_bristol_radius(lat, lng):
+                messages.error(request, 'Sorry, the Bristol Regional Food Network only serves customers within a 20-mile radius of Bristol city centre.')
+                return render(request, 'registration/signup.html', {'form': form})
+
+            account.latitude = lat
+            account.longitude = lng
             account.save()
             messages.success(request, 'Account created successfully!')
             return redirect('customer_login')
@@ -40,6 +54,19 @@ def producer_signup_view(request):
         if form.is_valid():
             producer = form.save(commit=False)
             producer.password = make_password(form.cleaned_data['password'])
+
+            # Geocode address for map pin and enforce 20-mile radius
+            lat, lng = geocode_address(producer.address, producer.postal_code)
+            if lat is None or lng is None:
+                messages.error(request, 'We could not verify your address. Please enter a valid UK address and postal code.')
+                return render(request, 'registration/producersignup.html', {'form': form})
+
+            if not is_within_bristol_radius(lat, lng):
+                messages.error(request, 'Sorry, the Bristol Regional Food Network only accepts producers within a 20-mile radius of Bristol city centre.')
+                return render(request, 'registration/producersignup.html', {'form': form})
+
+            producer.latitude = lat
+            producer.longitude = lng
             producer.save()
             messages.success(request, 'Producer account created successfully!')
             return redirect('producer_login')

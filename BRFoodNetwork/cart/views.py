@@ -199,31 +199,15 @@ def checkout(request):
                     "error": "Delivery/collection date must be at least 48 hours from now.",
                 },
             )
-#calculate total
-        total = Decimal("0.00")
-        for item in items:
-            total += item.product.price * item.quantity
 
-        order = Orders.objects.create(
-            user=customer,
-            delivery_address=delivery_address,
-            fulfillment_type=fulfillment_type,
-            delivery_date=delivery_date,
-            total_price=total,
-            order_status="pending",
-        )
-#creates the order items
-        for item in items:
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.price,
-            )
- #clear the cart
-        cart.items.all().delete()
+        # Store checkout data in session and redirect to payment page
+        request.session['checkout_data'] = {
+            'delivery_address': delivery_address,
+            'fulfillment_type': fulfillment_type,
+            'delivery_date': delivery_date_str,
+        }
 
-        return render(request, "cart/order_confirmed.html", {"order": order})
+        return redirect('payments:payment_page')
 
     total = Decimal("0.00")
     for item in items:

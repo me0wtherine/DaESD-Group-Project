@@ -1,44 +1,326 @@
 {% extends "home/base.html" %}
 
-{% block title %}Home - Bristol Regional Food Network{% endblock %}
+{% block title %}Producers Near You - Bristol Regional Food Network{% endblock %}
 
 {% block content %}
-<!-- Search Section -->
-<section class="search-section">
-    <div class="search-area">
-        <h1>Search for local producers...</h1>
-        <form class="search-form" method="get" action="#">
-            <div class="search-input-wrapper">
-                <span class="search-icon">&#9906;</span>
-                <input type="text" name="q" placeholder="Search for local producers..." />
-            </div>
-            <button type="submit" class="btn btn-primary">Search</button>
-        </form>
+<style>
+  .producers-page {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 0 20px;
+  }
+
+  .producers-page h1 {
+    font-size: 1.8em;
+    color: #333;
+    margin-bottom: 5px;
+  }
+
+  .producers-page .subtitle {
+    color: #666;
+    margin-bottom: 25px;
+  }
+
+  /* ---- Map ---- */
+  #producers-map {
+    width: 100%;
+    height: 450px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 30px;
+    background: #e8e8e8;
+  }
+
+  .no-api-key-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 450px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 30px;
+  }
+
+  .no-api-key-banner p {
+    font-size: 1.1em;
+    max-width: 500px;
+  }
+
+  /* ---- Search bar ---- */
+  .producer-search {
+    margin-bottom: 25px;
+  }
+
+  .producer-search input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+  }
+
+  /* ---- Producer Cards ---- */
+  .producer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .producer-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    transition: box-shadow .2s;
+    cursor: pointer;
+  }
+
+  .producer-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  }
+
+  .producer-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .producer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .producer-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .producer-details h3 {
+    margin: 0 0 4px;
+    font-size: 1.05em;
+    color: #333;
+  }
+
+  .producer-details .tagline {
+    color: #666;
+    font-size: 0.85em;
+    margin: 0 0 6px;
+  }
+
+  .producer-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 0.82em;
+    color: #888;
+  }
+
+  .meta-badge {
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
+  .meta-badge.distance {
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-weight: 600;
+  }
+
+  .producer-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .view-store-btn {
+    padding: 8px 16px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85em;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background .2s;
+  }
+
+  .view-store-btn:hover {
+    background: #1b5e20;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+  }
+
+  @media (max-width: 600px) {
+    #producers-map { height: 300px; }
+    .no-api-key-banner { height: 300px; }
+    .producer-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="producers-page">
+  <h1>Producers Near You</h1>
+  <p class="subtitle">Discover local farms and food producers within the Bristol Regional Food Network</p>
+
+  <!-- ===== Google Map ===== -->
+  {% if google_maps_api_key %}
+    <div id="producers-map"></div>
+  {% else %}
+    <div class="no-api-key-banner">
+      <div>
+        <p style="font-size:2.5em;margin-bottom:10px;">📍</p>
+        <p><strong>Interactive Map</strong></p>
+        <p style="margin-top:8px;opacity:.85;">
+          Producer locations are shown in the list below.<br>
+          Add a Google Maps API key to enable the interactive map.
+        </p>
+      </div>
     </div>
-</section>
+  {% endif %}
 
-<!-- Popular Items & Producers -->
-<section class="content-section">
-        <!-- Producers Near You -->
-        <div class="popular_items">
-            <h2>Producers Near You</h2>
-            <div class="map-placeholder">
-                <p class="map-text">Map</p>
-            </div>
-            <div class="producer-list">
-                {% for producer in producers %}
-                <div class="producer-item">
-                    <div class="producer-avatar"></div>
-                    <div class="producer-info">
-                        <h3>{{ producer.name }}</h3>
-                        <p>{{ producer.distance }} miles away</p>
-                    </div>
-                    <a href="#" class="btn btn-outline-sm">View Store</a>
-                </div>
-                {% endfor %}
-            </div>
+  <!-- ===== Search ===== -->
+  <div class="producer-search">
+    <input type="text" id="producer-filter" placeholder="Search producers by name or location..." />
+  </div>
+
+  <!-- ===== Producer Cards ===== -->
+  <div class="producer-grid" id="producer-grid">
+    {% for producer in producers %}
+      <div class="producer-card"
+           data-name="{{ producer.name|lower }}"
+           data-address="{{ producer.address|lower }}"
+           data-lat="{{ producer.latitude|default:'' }}"
+           data-lng="{{ producer.longitude|default:'' }}"
+           data-id="{{ producer.id }}">
+
+        <div class="producer-avatar">
+          {% if producer.image_url %}
+            <img src="{{ producer.image_url }}" alt="{{ producer.name }}">
+          {% endif %}
         </div>
-</section>
 
+        <div class="producer-details">
+          <h3>{{ producer.name }}</h3>
+          <p class="tagline">{{ producer.description }}</p>
+          <div class="producer-meta">
+            {% if producer.distance is not None %}
+              <span class="meta-badge distance">{{ producer.distance }} miles</span>
+            {% endif %}
+            {% if producer.collection_available %}
+              <span class="meta-badge">Collection</span>
+            {% endif %}
+            {% if producer.delivery_available %}
+              <span class="meta-badge">Delivery</span>
+            {% endif %}
+            <span class="meta-badge">{{ producer.postal_code }}</span>
+          </div>
+        </div>
+
+        <div class="producer-actions">
+          <a href="{% url 'store' producer.id %}" class="view-store-btn">View Store</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <p style="font-size:2em;">🌾</p>
+        <h3>No producers found</h3>
+        <p>Check back soon - new producers are joining the network regularly.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ===== Client-side search filter ===== -->
+<script>
+  document.getElementById('producer-filter').addEventListener('input', function () {
+    var query = this.value.toLowerCase();
+    document.querySelectorAll('.producer-card').forEach(function (card) {
+      var name = card.getAttribute('data-name');
+      var addr = card.getAttribute('data-address');
+      card.style.display = (name.indexOf(query) !== -1 || addr.indexOf(query) !== -1) ? '' : 'none';
+    });
+  });
+</script>
+
+<!-- ===== Google Maps ===== -->
+{% if google_maps_api_key %}
+<script>
+  function initMap() {
+    var centre = { lat: {{ default_lat }}, lng: {{ default_lng }} };
+    var map = new google.maps.Map(document.getElementById('producers-map'), {
+      zoom: 11,
+      center: centre,
+      mapTypeControl: false,
+      streetViewControl: false,
+    });
+
+    var bounds = new google.maps.LatLngBounds();
+    var hasPin = false;
+
+    {% for producer in producers %}
+      {% if producer.latitude and producer.longitude %}
+      (function () {
+        var pos = { lat: {{ producer.latitude }}, lng: {{ producer.longitude }} };
+        var marker = new google.maps.Marker({
+          position: pos,
+          map: map,
+          title: '{{ producer.name|escapejs }}',
+          icon: {
+            url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+          },
+        });
+
+        var info = new google.maps.InfoWindow({
+          content:
+            '<div style="min-width:200px;font-family:sans-serif;">' +
+              '<h3 style="margin:0 0 6px;font-size:1.05em;">{{ producer.name|escapejs }}</h3>' +
+              '<p style="margin:0 0 4px;color:#666;font-size:.9em;">{{ producer.address|escapejs }}</p>' +
+              {% if producer.distance is not None %}
+              '<p style="margin:0 0 8px;color:#2e7d32;font-weight:600;font-size:.9em;">{{ producer.distance }} miles away</p>' +
+              {% endif %}
+              '<a href="{% url "store" producer.id %}" ' +
+                'style="display:inline-block;padding:6px 14px;background:#2e7d32;color:#fff;' +
+                'border-radius:4px;text-decoration:none;font-size:.85em;font-weight:600;">' +
+                'Open Store</a>' +
+            '</div>',
+        });
+
+        marker.addListener('click', function () {
+          info.open(map, marker);
+        });
+
+        bounds.extend(pos);
+        hasPin = true;
+      })();
+      {% endif %}
+    {% endfor %}
+
+    if (hasPin) {
+      map.fitBounds(bounds);
+      var listener = google.maps.event.addListener(map, 'idle', function () {
+        if (map.getZoom() > 14) map.setZoom(14);
+        google.maps.event.removeListener(listener);
+      });
+    }
+  }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
+{% endif %}
 
 {% endblock %}

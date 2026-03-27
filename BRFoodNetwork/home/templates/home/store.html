@@ -1,0 +1,278 @@
+{% extends "home/base.html" %}
+
+{% block title %}{{ producer.business_name }} - Bristol Regional Food Network{% endblock %}
+
+{% block content %}
+<style>
+  .store-page { max-width: 1100px; margin: 0 auto; padding: 0 20px 40px; }
+
+  /* Banner */
+  .store-banner {
+    width: 100%;
+    height: 260px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+    margin-bottom: -50px;
+    position: relative;
+  }
+  .store-banner img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Header card */
+  .store-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    padding: 0 20px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+  }
+  .store-logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    background: #e0e0e0;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  .store-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .store-logo .placeholder {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%; font-size: 2.5em; color: #999;
+  }
+  .store-info h1 { margin: 0 0 4px; font-size: 1.6em; color: #333; }
+  .store-info .tagline { margin: 0 0 6px; color: #666; font-size: 0.95em; }
+  .store-meta {
+    display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.82em;
+  }
+  .store-badge {
+    background: #f0f0f0; padding: 3px 10px; border-radius: 12px; color: #555;
+  }
+  .store-badge.distance { background: #e8f5e9; color: #2e7d32; font-weight: 600; }
+
+  /* About section */
+  .store-about {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 30px;
+  }
+  .store-about h2 { margin: 0 0 12px; font-size: 1.15em; color: #333; }
+  .store-about p { margin: 0; color: #555; line-height: 1.6; }
+
+  .store-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .detail-item { font-size: 0.9em; color: #555; }
+  .detail-item strong { color: #333; display: block; margin-bottom: 2px; }
+
+  /* Products */
+  .products-section h2 {
+    font-size: 1.3em; color: #333; margin-bottom: 20px;
+    padding-bottom: 10px; border-bottom: 2px solid #e8f5e9;
+  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+  .product-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+  .product-img {
+    width: 100%; height: 180px; background: #f5f5f5;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .product-img img { width: 100%; height: 100%; object-fit: cover; }
+  .product-img .no-img { font-size: 3em; color: #ccc; }
+  .product-body { padding: 14px; }
+  .product-body h3 { margin: 0 0 6px; font-size: 1em; color: #333; }
+  .product-body .product-desc {
+    margin: 0 0 10px; color: #777; font-size: 0.85em;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .product-footer {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .product-price { font-weight: 700; color: #2e7d32; font-size: 1.05em; }
+  .product-unit { color: #999; font-size: 0.8em; }
+  .product-badges { display: flex; gap: 6px; margin-bottom: 8px; }
+  .p-badge {
+    font-size: 0.72em; padding: 2px 8px; border-radius: 10px;
+    background: #f0f0f0; color: #555;
+  }
+  .p-badge.organic { background: #e8f5e9; color: #2e7d32; }
+  .p-badge.surplus { background: #fff3e0; color: #e65100; }
+
+  .product-price-old {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9em;
+    margin-right: 6px;
+  }
+  .product-price.deal { color: #e65100; }
+
+  .product-bb {
+    margin: 0 0 8px;
+    font-size: 0.8em;
+    color: #999;
+  }
+
+  .empty-products {
+    text-align: center; padding: 60px 20px; color: #999;
+    grid-column: 1 / -1;
+  }
+
+  .back-link {
+    display: inline-block; margin: 20px 0 15px; color: #2e7d32;
+    text-decoration: none; font-weight: 600; font-size: 0.95em;
+  }
+  .back-link:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .store-banner { height: 160px; }
+    .store-header { flex-direction: column; align-items: flex-start; }
+    .store-logo { width: 80px; height: 80px; }
+    .product-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="store-page">
+  <a href="{% url 'producers' %}" class="back-link">&larr; Back to Producers</a>
+
+  <!-- Banner -->
+  <div class="store-banner">
+    {% if producer.banner_image %}
+      <img src="{{ producer.banner_image.url }}" alt="{{ producer.business_name }} banner">
+    {% endif %}
+  </div>
+
+  <!-- Header -->
+  <div class="store-header">
+    <div class="store-logo">
+      {% if producer.business_image %}
+        <img src="{{ producer.business_image.url }}" alt="{{ producer.business_name }}">
+      {% else %}
+        <div class="placeholder">🌾</div>
+      {% endif %}
+    </div>
+    <div class="store-info">
+      <h1>{{ producer.business_name }}</h1>
+      <p class="tagline">{{ producer.description }}</p>
+      <div class="store-meta">
+        {% if distance is not None %}
+          <span class="store-badge distance">{{ distance }} miles away</span>
+        {% endif %}
+        {% if producer.collection_available %}
+          <span class="store-badge">Collection</span>
+        {% endif %}
+        {% if producer.delivery_available %}
+          <span class="store-badge">Delivery</span>
+        {% endif %}
+        <span class="store-badge">{{ producer.postal_code }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- About -->
+  {% if producer.store_description or producer.farm_story or producer.certifications %}
+  <div class="store-about">
+    <h2>About {{ producer.business_name }}</h2>
+    {% if producer.store_description %}
+      <p>{{ producer.store_description }}</p>
+    {% elif producer.farm_story %}
+      <p>{{ producer.farm_story }}</p>
+    {% endif %}
+
+    <div class="store-details-grid">
+      {% if producer.address %}
+        <div class="detail-item">
+          <strong>📍 Location</strong>
+          {{ producer.address }}, {{ producer.postal_code }}
+        </div>
+      {% endif %}
+      {% if producer.phone_number %}
+        <div class="detail-item">
+          <strong>📞 Contact</strong>
+          {{ producer.phone_number }}
+        </div>
+      {% endif %}
+      {% if producer.certifications %}
+        <div class="detail-item">
+          <strong>🏅 Certifications</strong>
+          {{ producer.certifications }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Products -->
+  <div class="products-section">
+    <h2>Products ({{ products|length }})</h2>
+    <div class="product-grid">
+      {% for product in products %}
+        <div class="product-card">
+          <a href="{% url 'product_detail' product.id %}" class="product-img">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+              <span class="no-img">🥕</span>
+            {% endif %}
+          </a>
+          <div class="product-body">
+            <div class="product-badges">
+              <span class="p-badge">{{ product.get_category_display }}</span>
+              {% if product.is_organic %}
+                <span class="p-badge organic">Organic</span>
+              {% endif %}
+              {% if product.is_surplus %}
+                <span class="p-badge surplus">Surplus Deal</span>
+              {% endif %}
+            </div>
+            <h3><a href="{% url 'product_detail' product.id %}" style="color: inherit; text-decoration: none;">{{ product.name }}</a></h3>
+            {% if product.description %}
+              <p class="product-desc">{{ product.description }}</p>
+            {% endif %}
+            {% if product.best_before %}
+              <p class="product-bb">Best before: {{ product.best_before|date:"d/m/Y" }}</p>
+            {% endif %}
+            <div class="product-footer">
+              <div>
+                {% if product.is_surplus and product.surplus_price %}
+                  <span class="product-price-old">£{{ product.price }}</span>
+                  <span class="product-price deal">£{{ product.surplus_price }}</span>
+                {% else %}
+                  <span class="product-price">£{{ product.price }}</span>
+                {% endif %}
+                {% if product.unit %}
+                  <span class="product-unit">/ {{ product.unit }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty-products">
+          <p style="font-size:2em;">📦</p>
+          <h3>No products listed yet</h3>
+          <p>This producer hasn't added any products yet. Check back soon!</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

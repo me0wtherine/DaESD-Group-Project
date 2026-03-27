@@ -32,17 +32,25 @@
             <div class="product-grid">
                 {% for item in products %}
                 <div class="product-card">
-                    <div class="product-image-placeholder">
+                    <a href="{% url 'product_detail' item.id %}" class="product-image-placeholder">
                         {% if item.image %}
                             <img src="{{ item.image }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
                         {% else %}
                             <span>No Image</span>
                         {% endif %}
-                    </div>
+                    </a>
                     <div class="product-info">
-                        <h3>{{ item.name }}</h3>
+                        <h3><a href="{% url 'product_detail' item.id %}" style="color: inherit; text-decoration: none;">{{ item.name }}</a></h3>
                         <p class="product-farm">{{ item.farm }} &middot; {{ item.distance }} miles</p>
-                        <p class="product-price">&pound;{{ item.price }}</p>
+                        {% if item.is_surplus and item.surplus_price %}
+                            <p class="product-price-deal">
+                                <span class="price-was">&pound;{{ item.price }}</span>
+                                <span class="price-now">&pound;{{ item.surplus_price }}</span>
+                                <span class="deal-tag">Surplus Deal</span>
+                            </p>
+                        {% else %}
+                            <p class="product-price">&pound;{{ item.price }}</p>
+                        {% endif %}
                         {% if item.allergens %}
                             <p class="product-allergens">{{item.allergens}}</p>
                         {% endif %}

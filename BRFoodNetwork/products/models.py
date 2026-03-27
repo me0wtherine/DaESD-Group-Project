@@ -28,6 +28,12 @@ class Products(models.Model):
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     available_from = models.DateField(blank=True, null=True)
     available_to = models.DateField(blank=True, null=True)
+
+    # Surplus deal fields
+    best_before = models.DateField(blank=True, null=True, help_text='Best before / use-by date')
+    is_surplus = models.BooleanField(default=False, help_text='Whether this product is on a surplus deal')
+    surplus_price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, help_text='Discounted surplus price')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

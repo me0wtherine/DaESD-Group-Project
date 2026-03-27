@@ -7,7 +7,7 @@ class SignupForm(forms.ModelForm):
 
     class Meta:
         model = Accounts
-        fields = ['name', 'email', 'phone_number', 'password']
+        fields = ['name', 'email', 'phone_number', 'address', 'postal_code', 'password']
         widgets = {
             'password': forms.PasswordInput(),
         }

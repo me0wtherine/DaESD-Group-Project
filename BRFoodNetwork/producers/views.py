@@ -1,8 +1,10 @@
 import json
+from datetime import timedelta
 from functools import wraps
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 
 from accounts.models import Producers
 from products.models import Products
@@ -107,6 +109,17 @@ def edit_store(request):
 
 
 @producer_required
+def producer_products(request):
+    """Dedicated page listing all products for the logged-in producer."""
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+    products = Products.objects.filter(producer=producer)
+    return render(request, 'producers/producer_products.html', {
+        'producer': producer,
+        'products': products,
+    })
+
+
+@producer_required
 def add_product(request):
     """Add a new product listing"""
     producer = get_object_or_404(Producers, id=request.session['user_id'])
@@ -166,6 +179,7 @@ def delete_product(request, product_id):
 def producer_orders(request):
     """Display all orders that contain products from the logged-in producer."""
     from orders.models import OrderItem
+    from accounts.geocoding import haversine
 
     producer = get_object_or_404(Producers, id=request.session['user_id'])
 
@@ -176,9 +190,83 @@ def producer_orders(request):
         .order_by('-order__order_date')
     )
 
+    # Calculate food miles per order item
+    items_with_miles = []
+    for item in order_items:
+        food_miles = None
+        customer = item.order.user
+        if (producer.latitude and producer.longitude and
+                getattr(customer, 'latitude', None) and getattr(customer, 'longitude', None)):
+            food_miles = round(haversine(
+                producer.latitude, producer.longitude,
+                customer.latitude, customer.longitude
+            ), 1)
+        items_with_miles.append({'item': item, 'food_miles': food_miles})
+
     return render(request, 'producers/producers_orders.html', {
         'producer': producer,
-        'order_items': order_items,
+        'order_items_with_miles': items_with_miles,
+    })
+
+
+@producer_required
+def surplus_deals(request):
+    """Manage surplus deals – list products and let producers set deal prices for items near best-before."""
+    from datetime import date
+    from decimal import Decimal, InvalidOperation
+
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        product = get_object_or_404(Products, id=product_id, producer=producer)
+        action = request.POST.get('action')
+
+        if action == 'set_deal':
+            best_before = request.POST.get('best_before', '').strip()
+            surplus_price = request.POST.get('surplus_price', '').strip()
+
+            if not best_before:
+                messages.error(request, 'Please set a best-before date.')
+                return redirect('surplus_deals')
+            if not surplus_price:
+                messages.error(request, 'Please enter a deal price.')
+                return redirect('surplus_deals')
+
+            try:
+                deal_price = Decimal(surplus_price)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Invalid price entered.')
+                return redirect('surplus_deals')
+
+            if deal_price <= 0 or deal_price >= product.price:
+                messages.error(request, 'Deal price must be between £0.01 and the original price.')
+                return redirect('surplus_deals')
+
+            product.best_before = best_before
+            product.surplus_price = deal_price
+            product.is_surplus = True
+            product.save()
+            messages.success(request, f'"{product.name}" is now on a surplus deal at £{deal_price}!')
+
+        elif action == 'remove_deal':
+            product.is_surplus = False
+            product.surplus_price = None
+            product.save()
+            messages.success(request, f'Surplus deal removed from "{product.name}".')
+
+        return redirect('surplus_deals')
+
+    # GET – split into active deals and eligible products
+    all_products = Products.objects.filter(producer=producer, is_available=True)
+    active_deals = all_products.filter(is_surplus=True).order_by('best_before')
+    available_for_deals = all_products.filter(is_surplus=False).order_by('name')
+
+    return render(request, 'producers/surplus_deals.html', {
+        'producer': producer,
+        'active_deals': active_deals,
+        'available_for_deals': available_for_deals,
+        'today': date.today().isoformat(),
     })
 
 
@@ -224,3 +312,86 @@ def producer_payouts(request):
         'total_commission': total_commission,
         'total_payout': total_payout,
     })
+
+
+@producer_required
+def weekly_settlements(request):
+    """Display weekly payment settlements for the logged-in producer."""
+    from payments.models import Payments
+
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+
+    payment_records = (
+        Payments.objects
+        .filter(producer=producer)
+        .select_related('order', 'order__user')
+        .order_by('-order__order_date')
+    )
+
+    weeks = {}
+    for payment in payment_records:
+        order_date = payment.order.order_date
+        week_start = (order_date - timedelta(days=order_date.weekday())).date()
+        week_key = week_start.isoformat()
+
+        if week_key not in weeks:
+            weeks[week_key] = {
+                'week_starting': week_start,
+                'payments': [],
+                'total_value': 0,
+                'total_commission': 0,
+                'total_payout': 0,
+            }
+
+        order_value = float(payment.producer_payment + payment.network_commission)
+        weeks[week_key]['payments'].append({
+            'order': payment.order,
+            'order_value': order_value,
+            'commission': float(payment.network_commission),
+            'payout': float(payment.producer_payment),
+            'settlement_status': payment.order.settlement_status,
+            'settlement_status_display': payment.order.get_settlement_status_display(),
+        })
+        weeks[week_key]['total_value'] += order_value
+        weeks[week_key]['total_commission'] += float(payment.network_commission)
+        weeks[week_key]['total_payout'] += float(payment.producer_payment)
+
+    sorted_weeks = sorted(weeks.values(), key=lambda w: w['week_starting'], reverse=True)
+    grand_total_value = sum(w['total_value'] for w in sorted_weeks)
+    grand_total_commission = sum(w['total_commission'] for w in sorted_weeks)
+    grand_total_payout = sum(w['total_payout'] for w in sorted_weeks)
+
+    return render(request, 'producers/weekly_settlements.html', {
+        'producer': producer,
+        'weeks': sorted_weeks,
+        'grand_total_value': grand_total_value,
+        'grand_total_commission': grand_total_commission,
+        'grand_total_payout': grand_total_payout,
+    })
+
+
+@producer_required
+@require_POST
+def update_order_status(request, order_id):
+    """Allow a producer to advance the status of an order containing their products."""
+    from orders.models import Orders, OrderItem
+
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+    order = get_object_or_404(Orders, id=order_id)
+
+    # Verify this producer has items in this order
+    has_items = OrderItem.objects.filter(order=order, product__producer=producer).exists()
+    if not has_items:
+        messages.error(request, 'You do not have permission to update this order.')
+        return redirect('producer_orders')
+
+    new_status = request.POST.get('order_status', '')
+    valid_statuses = [c[0] for c in Orders.ORDER_STATUS_CHOICES]
+    if new_status not in valid_statuses:
+        messages.error(request, 'Invalid order status.')
+        return redirect('producer_orders')
+
+    order.order_status = new_status
+    order.save()
+    messages.success(request, f'Order #{order.id:05d} status updated to {order.get_order_status_display()}.')
+    return redirect('producer_orders')

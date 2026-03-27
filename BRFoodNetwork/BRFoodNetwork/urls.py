@@ -12,6 +12,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('producer/', include('producers.urls')),
     path('cart/', include(('cart.urls', 'cart'), namespace='cart')),
+    path('payments/', include(('payments.urls', 'payments'), namespace='payments')),
 ]
 
 if settings.DEBUG:

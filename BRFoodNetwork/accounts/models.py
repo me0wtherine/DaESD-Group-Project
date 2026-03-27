@@ -9,6 +9,8 @@ class Accounts(models.Model):
     address = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20)
     postal_code = models.CharField(max_length=20)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     class Meta:
         verbose_name_plural = 'Accounts'
@@ -34,6 +36,8 @@ class Producers(models.Model):
     opening_hours = models.JSONField(blank=True, default=dict)
     certifications = models.TextField(blank=True, default='')
     farm_story = models.TextField(blank=True, default='')
+    latitude = models.FloatField(null=True, blank=True, help_text='GPS latitude for map pin')
+    longitude = models.FloatField(null=True, blank=True, help_text='GPS longitude for map pin')
     is_active = models.BooleanField(default=True)
 
     class Meta:

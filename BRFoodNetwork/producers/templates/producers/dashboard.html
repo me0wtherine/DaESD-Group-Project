@@ -14,7 +14,7 @@
             <span class="status-badge {% if producer.is_active %}active{% else %}inactive{% endif %}">
                 Status: {% if producer.is_active %}Active{% else %}Inactive{% endif %}
             </span>
-            <a href="#" class="btn btn-outline-sm">View Store Page</a>
+            <a href="{% url 'store' producer.id %}" class="btn btn-outline-sm" target="_blank">View Store Page</a>
         </div>
     </div>
 
@@ -34,16 +34,16 @@
             <ul class="sidebar-nav">
                 <li><a href="{% url 'producer_dashboard' %}" class="sidebar-link active">
                     <span class="sidebar-icon">📋</span> Store Details</a></li>
-                <li><a href="#products-section" class="sidebar-link">
+                <li><a href="{% url 'producer_products' %}" class="sidebar-link">
                     <span class="sidebar-icon">📦</span> Products</a></li>
                 <li><a href="{% url 'producer_orders' %}" class="sidebar-link">
                     <span class="sidebar-icon">🧾</span> Orders</a></li>
-                <li><a href="#" class="sidebar-link">
+                <li><a href="{% url 'surplus_deals' %}" class="sidebar-link">
                     <span class="sidebar-icon">💰</span> Surplus Deals</a></li>
                 <li><a href="{% url 'producer_payouts' %}" class="sidebar-link">
                     <span class="sidebar-icon">💳</span> Payouts</a></li>
-                <li><a href="#" class="sidebar-link">
-                    <span class="sidebar-icon">📊</span> Analytics</a></li>
+                <li><a href="{% url 'weekly_settlements' %}" class="sidebar-link">
+                    <span class="sidebar-icon">📊</span> Weekly Settlements</a></li>
             </ul>
         </aside>
 

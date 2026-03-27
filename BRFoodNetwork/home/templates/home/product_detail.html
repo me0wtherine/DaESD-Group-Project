@@ -1,0 +1,379 @@
+{% extends "home/base.html" %}
+
+{% block title %}{{ product.name }} – Bristol Regional Food Network{% endblock %}
+
+{% block content %}
+<style>
+  .product-detail-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin: 20px 0 15px;
+    color: #2e7d32;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95em;
+  }
+  .back-link:hover { text-decoration: underline; }
+
+  .pd-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    margin-bottom: 36px;
+  }
+
+  .pd-image {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pd-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .pd-image .no-img {
+    font-size: 5em;
+    color: #ccc;
+  }
+
+  .pd-info h1 {
+    margin: 0 0 8px;
+    font-size: 1.8em;
+    color: #333;
+  }
+
+  .pd-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .pd-badge {
+    display: inline-block;
+    font-size: 0.78em;
+    padding: 4px 12px;
+    border-radius: 14px;
+    background: #f0f0f0;
+    color: #555;
+    font-weight: 600;
+  }
+  .pd-badge.organic { background: #e8f5e9; color: #2e7d32; }
+  .pd-badge.surplus { background: #fff3e0; color: #e65100; }
+  .pd-badge.category { background: #e3f2fd; color: #1565c0; }
+
+  .pd-pricing {
+    margin-bottom: 16px;
+  }
+  .pd-price {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #2e7d32;
+  }
+  .pd-price.deal { color: #e65100; }
+  .pd-price-was {
+    font-size: 1.2em;
+    color: #999;
+    text-decoration: line-through;
+    margin-right: 10px;
+  }
+  .pd-unit {
+    font-size: 0.95em;
+    color: #777;
+    margin-left: 4px;
+  }
+  .pd-deal-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff3e0;
+    border: 1px solid #ffe0b2;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #e65100;
+  }
+  .pd-deal-banner strong { font-weight: 700; }
+
+  .pd-stock {
+    margin-bottom: 16px;
+    font-size: 0.9em;
+  }
+  .pd-stock .in-stock { color: #2e7d32; font-weight: 600; }
+  .pd-stock .out-of-stock { color: #c62828; font-weight: 600; }
+
+  .pd-add-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .pd-qty {
+    width: 60px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    text-align: center;
+  }
+  .pd-add-btn {
+    padding: 12px 28px;
+    background: #2e7d32;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .pd-add-btn:hover { background: #1b5e20; }
+  .pd-add-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  .pd-description {
+    margin-bottom: 28px;
+  }
+  .pd-description h2 {
+    font-size: 1.1em;
+    color: #333;
+    margin: 0 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8f5e9;
+  }
+  .pd-description p {
+    color: #555;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* Allergens */
+  .pd-allergens {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .pd-allergens h3 {
+    margin: 0 0 8px;
+    font-size: 1em;
+    color: #f57f17;
+  }
+  .pd-allergen-text {
+    margin: 0;
+    color: #795548;
+    font-size: 0.95em;
+    line-height: 1.6;
+  }
+
+  /* Availability */
+  .pd-availability {
+    font-size: 0.9em;
+    color: #777;
+    margin-bottom: 20px;
+  }
+
+  /* Producer card */
+  .pd-producer-card {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .pd-producer-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e0e0e0;
+    flex-shrink: 0;
+  }
+  .pd-producer-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .pd-producer-img .placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 1.8em;
+    color: #999;
+  }
+  .pd-producer-details h3 {
+    margin: 0 0 4px;
+    font-size: 1.05em;
+    color: #333;
+  }
+  .pd-producer-details h3 a {
+    color: #2e7d32;
+    text-decoration: none;
+  }
+  .pd-producer-details h3 a:hover { text-decoration: underline; }
+  .pd-producer-meta {
+    font-size: 0.85em;
+    color: #777;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .pd-producer-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .pd-producer-badge {
+    font-size: 0.75em;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: #f0f0f0;
+    color: #555;
+  }
+  .pd-producer-badge.distance {
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .pd-layout {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+</style>
+
+<div class="product-detail-page">
+  <a href="{% url 'shop' %}" class="back-link">&larr; Back to Shop</a>
+
+  <div class="pd-layout">
+    <!-- Image -->
+    <div class="pd-image">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+      {% else %}
+        <span class="no-img">🥕</span>
+      {% endif %}
+    </div>
+
+    <!-- Info -->
+    <div class="pd-info">
+      <div class="pd-badges">
+        <span class="pd-badge category">{{ product.get_category_display }}</span>
+        {% if product.is_organic %}
+          <span class="pd-badge organic">🌿 Organic</span>
+        {% endif %}
+        {% if product.is_surplus %}
+          <span class="pd-badge surplus">💰 Surplus Deal</span>
+        {% endif %}
+      </div>
+
+      <h1>{{ product.name }}</h1>
+
+      <div class="pd-pricing">
+        {% if product.is_surplus and product.surplus_price %}
+          <span class="pd-price-was">£{{ product.price }}</span>
+          <span class="pd-price deal">£{{ product.surplus_price }}</span>
+          {% if product.unit %}<span class="pd-unit">/ {{ product.unit }}</span>{% endif %}
+          <div class="pd-deal-banner">
+            💰 <strong>Surplus Deal</strong> — Best before {{ product.best_before|date:"d/m/Y" }}
+          </div>
+        {% else %}
+          <span class="pd-price">£{{ product.price }}</span>
+          {% if product.unit %}<span class="pd-unit">/ {{ product.unit }}</span>{% endif %}
+        {% endif %}
+      </div>
+
+      <div class="pd-stock">
+        {% if product.is_available and product.stock_quantity > 0 %}
+          <span class="in-stock">✓ In Stock</span> ({{ product.stock_quantity }} available)
+        {% else %}
+          <span class="out-of-stock">✗ Out of Stock</span>
+        {% endif %}
+      </div>
+
+      {% if product.is_available %}
+      <form method="POST" action="{% url 'cart:add' product.id %}" class="pd-add-form">
+        {% csrf_token %}
+        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock_quantity }}" class="pd-qty">
+        <button type="submit" class="pd-add-btn">Add to Basket</button>
+      </form>
+      {% else %}
+      <button class="pd-add-btn" disabled>Out of Stock</button>
+      {% endif %}
+
+      {% if product.available_from and product.available_to %}
+      <p class="pd-availability">
+        📅 Available: {{ product.available_from|date:"d/m/Y" }} – {{ product.available_to|date:"d/m/Y" }}
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Description -->
+  {% if product.description %}
+  <div class="pd-description">
+    <h2>Description</h2>
+    <p>{{ product.description|linebreaksbr }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Allergens -->
+  {% if product.allergens %}
+  <div class="pd-allergens">
+    <h3>⚠️ Allergen Information</h3>
+    <p class="pd-allergen-text">{{ product.allergens }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Producer Info -->
+  <div class="pd-description">
+    <h2>About the Producer</h2>
+  </div>
+  <div class="pd-producer-card">
+    <div class="pd-producer-img">
+      {% if producer.business_image %}
+        <img src="{{ producer.business_image.url }}" alt="{{ producer.business_name }}">
+      {% else %}
+        <div class="placeholder">🌾</div>
+      {% endif %}
+    </div>
+    <div class="pd-producer-details">
+      <h3><a href="{% url 'store' producer.id %}">{{ producer.business_name }}</a></h3>
+      <p class="pd-producer-meta">
+        {% if producer.address %}{{ producer.address }}, {{ producer.postal_code }}{% endif %}
+        {% if producer.phone_number %}<br>📞 {{ producer.phone_number }}{% endif %}
+      </p>
+      <div class="pd-producer-badges">
+        {% if distance is not None %}
+          <span class="pd-producer-badge distance">{{ distance }} miles away</span>
+        {% endif %}
+        {% if producer.collection_available %}
+          <span class="pd-producer-badge">Collection</span>
+        {% endif %}
+        {% if producer.delivery_available %}
+          <span class="pd-producer-badge">Delivery</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

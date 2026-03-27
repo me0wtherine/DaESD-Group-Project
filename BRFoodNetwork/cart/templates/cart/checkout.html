@@ -125,7 +125,7 @@
     justify-content: space-between;
     font-size: 1.2em;
     font-weight: bold;
-    color: #2ecc71;
+    color: #2e7d32;
     padding: 15px 0;
     border-bottom: 1px solid #ddd;
     margin-bottom: 20px;
@@ -149,12 +149,12 @@
   }
 
   .checkout-btn {
-    background-color: #2ecc71;
+    background-color: #2e7d32;
     color: white;
   }
 
   .checkout-btn:hover {
-    background-color: #27ae60;
+    background-color: #1b5e20;
   }
 
   .cancel-btn {
@@ -208,6 +208,7 @@
           id="address"
           name="address"
           placeholder="e.g. 123 High Street, Bristol"
+          value="{{ customer.address }}"
           required
         />
       </div>
@@ -219,6 +220,7 @@
           id="postcode"
           name="postcode"
           placeholder="e.g. BS1 5TR"
+          value="{{ customer.postal_code }}"
           required
         />
       </div>
@@ -268,7 +270,7 @@
       </div>
 
       <div class="checkout-actions">
-        <button type="submit" class="checkout-btn">Place Order</button>
+        <button type="submit" class="checkout-btn">Continue to Payment</button>
         <a href="{% url 'cart:detail' %}" class="cancel-btn">Back to Cart</a>
       </div>
     </form>

@@ -13,7 +13,7 @@
             <span class="status-badge {% if producer.is_active %}active{% else %}inactive{% endif %}">
                 Status: {% if producer.is_active %}Active{% else %}Inactive{% endif %}
             </span>
-            <a href="#" class="btn btn-outline-sm">View Store Page</a>
+            <a href="{% url 'store' producer.id %}" class="btn btn-outline-sm" target="_blank">View Store Page</a>
         </div>
     </div>
 
@@ -23,75 +23,95 @@
             <ul class="sidebar-nav">
                 <li><a href="{% url 'producer_dashboard' %}" class="sidebar-link">
                     <span class="sidebar-icon">📋</span> Store Details</a></li>
-                <li><a href="#" class="sidebar-link">
+                <li><a href="{% url 'producer_products' %}" class="sidebar-link">
                     <span class="sidebar-icon">📦</span> Products</a></li>
                 <li><a href="{% url 'producer_orders' %}" class="sidebar-link active">
                     <span class="sidebar-icon">🧾</span> Orders</a></li>
-                <li><a href="#" class="sidebar-link">
+                <li><a href="{% url 'surplus_deals' %}" class="sidebar-link">
                     <span class="sidebar-icon">💰</span> Surplus Deals</a></li>
-                <li><a href="#" class="sidebar-link">
+                <li><a href="{% url 'producer_payouts' %}" class="sidebar-link">
                     <span class="sidebar-icon">💳</span> Payouts</a></li>
-                <li><a href="#" class="sidebar-link">
-                    <span class="sidebar-icon">📊</span> Analytics</a></li>
+                <li><a href="{% url 'weekly_settlements' %}" class="sidebar-link">
+                    <span class="sidebar-icon">📊</span> Weekly Settlements</a></li>
             </ul>
         </aside>
 
         <div class="manage-main">
 
-            {% if order_items %}
-                {% for item in order_items %}
+            {% if order_items_with_miles %}
+                {% for entry in order_items_with_miles %}
                 <div class="order-card">
                     <div class="order-header">
-                        <h2 class="order-number">Order {{ item.order.id|stringformat:"05d" }}</h2>
+                        <h2 class="order-number">Order {{ entry.item.order.id|stringformat:"05d" }}</h2>
                     </div>
 
                     <div class="order-details-grid">
                         <div class="order-left">
                             <div class="order-field">
                                 <label class="order-label">Customer Name:</label>
-                                <p class="order-value">{{ item.order.user.name }}</p>
+                                <p class="order-value">{{ entry.item.order.user.name }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Customer Contact:</label>
-                                <p class="order-value">{{ item.order.user.phone_number }}</p>
+                                <p class="order-value">{{ entry.item.order.user.phone_number }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Delivery Address:</label>
-                                <p class="order-value">{{ item.order.delivery_address }}</p>
+                                <p class="order-value">{{ entry.item.order.delivery_address }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Pickup or Delivery:</label>
-                                <p class="order-value">{{ item.order.fulfillment_type|title }}</p>
+                                <p class="order-value">{{ entry.item.order.fulfillment_type|title }}</p>
                             </div>
                         </div>
 
                         <div class="order-right">
                             <div class="order-field">
                                 <label class="order-label">Order Date:</label>
-                                <p class="order-value">{{ item.order.order_date|date:"d/m/Y" }}</p>
+                                <p class="order-value">{{ entry.item.order.order_date|date:"d/m/Y" }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Delivery Date:</label>
-                                <p class="order-value">{{ item.order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
+                                <p class="order-value">{{ entry.item.order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
                             </div>
                             <div class="order-field">
                                 <label class="order-label">Status:</label>
                                 <div class="status-field">
-                                    <span class="status-badge status-{{ item.order.order_status }}">
-                                        {{ item.order.get_order_status_display }}
+                                    <span class="status-badge status-{{ entry.item.order.order_status }}">
+                                        {{ entry.item.order.get_order_status_display }}
                                     </span>
-                                    <button class="status-edit-btn" title="Edit status">✏️</button>
+                                    <button type="button" class="status-edit-btn" onclick="toggleStatusForm(this)" title="Edit status">✏️</button>
                                 </div>
+                                <form method="post" action="{% url 'update_order_status' entry.item.order.id %}" class="status-form" style="display:none; margin-top:8px;">
+                                    {% csrf_token %}
+                                    <select name="order_status" class="status-select">
+                                        <option value="pending" {% if entry.item.order.order_status == 'pending' %}selected{% endif %}>Pending</option>
+                                        <option value="confirmed" {% if entry.item.order.order_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                        <option value="dispatched" {% if entry.item.order.order_status == 'dispatched' %}selected{% endif %}>Dispatched</option>
+                                        <option value="delivered" {% if entry.item.order.order_status == 'delivered' %}selected{% endif %}>Delivered</option>
+                                        <option value="cancelled" {% if entry.item.order.order_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                    </select>
+                                    <button type="submit" class="status-save-btn">Save</button>
+                                </form>
                             </div>
                         </div>
                     </div>
 
                     <div class="order-summary">
                         <p class="summary-text">
-                            Items Ordered: <strong>{{ item.quantity }}</strong> |
-                            Item Total: <strong>£{{ item.price }}</strong>
+                            Items Ordered: <strong>{{ entry.item.quantity }}</strong> |
+                            Item Total: <strong>£{{ entry.item.price }}</strong>
+                            {% if entry.food_miles != None %}
+                                | Food Miles: <strong class="food-miles-highlight">{{ entry.food_miles }} mi</strong>
+                            {% endif %}
                         </p>
                     </div>
+
+                    {% if entry.food_miles != None %}
+                    <div class="food-miles-bar">
+                        🌿 This order travels <strong>{{ entry.food_miles }} miles</strong> from your farm to the customer
+                    </div>
+                    {% endif %}
 
                     <div class="order-items-table">
                         <table>
@@ -104,9 +124,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{ item.product.name }}</td>
-                                    <td>{{ item.quantity }}</td>
-                                    <td>£{{ item.price }}</td>
+                                    <td>{{ entry.item.product.name }}</td>
+                                    <td>{{ entry.item.quantity }}</td>
+                                    <td>£{{ entry.item.price }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -223,6 +243,37 @@
         padding: 0;
     }
 
+    .status-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-select {
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #333;
+        background: #fff;
+    }
+
+    .status-save-btn {
+        padding: 6px 14px;
+        background: #2e7d32;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .2s;
+    }
+
+    .status-save-btn:hover {
+        background: #1b5e20;
+    }
+
     .order-summary {
         background: white;
         padding: 12px 16px;
@@ -279,6 +330,20 @@
         padding: 24px !important;
     }
 
+    .food-miles-bar {
+        background: #e8f5e9;
+        border-left: 4px solid #2e7d32;
+        padding: 10px 16px;
+        border-radius: 4px;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: #2e7d32;
+    }
+
+    .food-miles-highlight {
+        color: #2e7d32;
+    }
+
     @media (max-width: 768px) {
         .order-details-grid {
             grid-template-columns: 1fr;
@@ -286,5 +351,13 @@
         }
     }
 </style>
+
+<script>
+function toggleStatusForm(btn) {
+    var field = btn.closest('.order-field');
+    var form = field.querySelector('.status-form');
+    form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+}
+</script>
 
 {% endblock %}
