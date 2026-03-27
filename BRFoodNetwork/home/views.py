@@ -85,10 +85,6 @@ def shop(request):
 
     if search_query:
         for product in products:
-<<<<<<< HEAD
-            if search_query in product.name:
-                product_list.append(_product_dict(product))
-=======
             if search_query.lower() in product.name.lower():
                 product_list.append({
                     'id': product.id,
@@ -100,7 +96,6 @@ def shop(request):
                     'is_organic': product.is_organic if "Organic Certified" else None,
                     'allergens': product.allergens,
                 })
->>>>>>> b92f533f718fff6ee4bbfe08bffbd4078f2db473
     else:
         product_list = [_product_dict(p) for p in products]
 
