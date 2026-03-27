@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import make_password, check_password
 
 from .forms import SignupForm, ProducerSignupForm, CustomerLoginForm, ProducerLoginForm
 from .models import Accounts, Producers
+from orders.models import Orders
 
 
 def account_type_signup(request):
@@ -94,6 +95,29 @@ def producer_login(request):
         form = ProducerLoginForm()
 
     return render(request, 'registration/producer_login.html', {'form': form})
+
+
+def order_history(request):
+    """Show logged-in customers their past orders."""
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+
+    if not user_id or user_type != 'customer':
+        messages.error(request, 'You must be logged in as a customer to view your order history.')
+        return redirect('customer_login')
+
+    customer = Accounts.objects.filter(id=user_id).first()
+    if not customer:
+        request.session.flush()
+        messages.error(request, 'Please log in again.')
+        return redirect('customer_login')
+
+    orders = Orders.objects.filter(user=customer).order_by('-order_date')
+
+    return render(request, 'accounts/order_history.html', {
+        'customer': customer,
+        'orders': orders,
+    })
 
 
 def logout_view(request):

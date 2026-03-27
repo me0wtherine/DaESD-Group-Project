@@ -29,6 +29,9 @@
                             {% if user_type == 'producer' %}
                                 <a href="{% url 'producer_dashboard' %}" class="dropdown-item">Dashboard</a>
                             {% endif %}
+                            {% if user_type == 'customer' %}
+                                <a href="{% url 'order_history' %}" class="dropdown-item">Order History</a>
+                            {% endif %}
                             <a href="{% url 'logout' %}" class="dropdown-item">Sign Out</a>
                         </div>
                     </li>

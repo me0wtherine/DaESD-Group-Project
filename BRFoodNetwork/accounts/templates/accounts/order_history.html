@@ -1,0 +1,122 @@
+{% extends "home/base.html" %}
+
+{% block title %}Order History{% endblock %}
+
+{% block content %}
+<div class="manage-store-wrapper">
+    <div class="manage-topbar">
+        <h1 class="manage-title">Order History</h1>
+        <div class="manage-topbar-right">
+            <span class="manage-farm-name">{{ customer.name }}</span>
+        </div>
+    </div>
+
+    <div class="manage-main">
+        {% if orders %}
+            {% for order in orders %}
+                <div class="order-card">
+                    <div class="order-header">
+                        <h2 class="order-number">Order {{ order.id|stringformat:"05d" }}</h2>
+                    </div>
+
+                    <div class="order-details-grid">
+                        <div class="order-left">
+                            <div class="order-field">
+                                <label class="order-label">Order Date:</label>
+                                <p class="order-value">{{ order.order_date|date:"d/m/Y" }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Delivery Address:</label>
+                                <p class="order-value">{{ order.delivery_address }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Fulfilment Type:</label>
+                                <p class="order-value">{{ order.fulfillment_type|title }}</p>
+                            </div>
+                        </div>
+
+                        <div class="order-right">
+                            <div class="order-field">
+                                <label class="order-label">Delivery Date:</label>
+                                <p class="order-value">{{ order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Status:</label>
+                                <p class="order-value">{{ order.get_order_status_display }}</p>
+                            </div>
+                            <div class="order-field">
+                                <label class="order-label">Total Price:</label>
+                                <p class="order-value">£{{ order.total_price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p class="empty-icon">📦</p>
+                <h3>No orders yet</h3>
+                <p>Your previous orders will appear here once you place them.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .order-card {
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .order-header {
+        border-bottom: 2px solid #ddd;
+        padding-bottom: 16px;
+        margin-bottom: 20px;
+    }
+
+    .order-number {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .order-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 24px;
+    }
+
+    .order-field {
+        margin-bottom: 16px;
+    }
+
+    .order-label {
+        font-weight: 600;
+        font-size: 13px;
+        color: #666;
+        display: block;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .order-value {
+        font-size: 14px;
+        color: #333;
+        margin: 0;
+        word-break: break-word;
+    }
+
+    @media (max-width: 768px) {
+        .order-details-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+    }
+</style>
+{% endblock %}
