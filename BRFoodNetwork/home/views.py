@@ -66,7 +66,7 @@ def shop(request):
     product_list = []
     if search_query:
         for product in products:
-            if search_query in product.name:
+            if search_query.lower() in product.name.lower():
                 product_list.append({
                     'id': product.id,
                     'name': product.name,
