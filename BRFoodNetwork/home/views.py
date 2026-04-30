@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.conf import settings
 import math
-from products.models import Products
+from products.models import Products, Reviews
 from accounts.models import Producers, Accounts
 
 
@@ -124,10 +124,35 @@ def product_detail(request, product_id):
                 ref_lat, ref_lng = customer.latitude, customer.longitude
         distance = round(_haversine(ref_lat, ref_lng, producer.latitude, producer.longitude), 1)
 
+    # get reviews for this product
+    reviews = Reviews.objects.filter(product=product).order_by('-created_at')
+    user_review = None
+    review_list = []
+    # show reviews in product detail page
+    for review in reviews:
+        if review.customer.id != user_id:
+            review_list.append({
+                'customer': review.customer.name,
+                'rating': review.rating,
+                'comment': review.comment,
+                'created_at': review.created_at,
+            })
+        else:
+            user_review = {
+                'customer': review.customer.name,
+                'rating': review.rating,
+                'comment': review.comment,
+                'created_at': review.created_at,
+            }
+
+
+
     return render(request, 'home/product_detail.html', {
         'product': product,
         'producer': producer,
         'distance': distance,
+        'reviews': review_list,
+        'user_review': user_review,
     })
 
 
@@ -227,3 +252,21 @@ def store(request, producer_id):
         'products': products,
         'distance': distance,
     })
+
+def add_review(request, product_id):
+    """Handle submission of a new review for a product."""
+    product = get_object_or_404(Products, id=product_id)
+
+    if request.method == 'POST':
+        user_id = request.session.get('user_id')
+        user_type = request.session.get('user_type')
+
+        if user_id and user_type == 'customer':
+            customer = Accounts.objects.filter(id=user_id).first()
+            if customer:
+                rating = int(request.POST.get('rating', 5))
+                comment = request.POST.get('comment', '')
+                Reviews.objects.create(product=product, customer=customer, rating=rating, comment=comment)
+
+    # After adding review, redirect back to product detail page
+    return product_detail(request, product_id)

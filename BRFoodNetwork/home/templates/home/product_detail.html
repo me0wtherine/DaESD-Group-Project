@@ -375,5 +375,46 @@
       </div>
     </div>
   </div>
+
+  <!-- Reviews -->
+   
+  <div class="pd-description">
+    <h2>Customer Reviews</h2>
+
+  {% if user_review %}
+    <p>Your review:</p>
+    <div class="pd-review">
+      <p><strong>{{ user_review.customer.name }}</strong> – {{ user_review.created_at|date:"d/m/Y" }}</p>
+      <p>{{ user_review.comment|linebreaksbr }}</p>
+    </div>
+
+  {% elif user %}
+    <form method="POST" action="{% url 'add_review' product.id %}">
+      {% csrf_token %}
+      <textarea name="comment" rows="4" placeholder="Write your review here..." required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px;"></textarea>
+      <select name="rating" required style="margin-bottom: 10px;">
+        <option value="" disabled selected>Rating</option>
+        <option value="5">5 - Excellent</option>
+        <option value="4">4 - Good</option>
+        <option value="3">3 - Average</option>
+        <option value="2">2 - Poor</option>
+        <option value="1">1 - Terrible</option>
+      </select>
+      <button type="submit" class="pd-add-btn">Submit Review</button>
+    </form>
+  {% else %}
+    <p><a href="{% url 'welcome' %}">Log in</a> to write a review.</p>
+  {% endif %}
+
+  {% if reviews %} 
+    {% for review in reviews %}
+      <div class="pd-review">
+        <p><strong>{{ review.customer }}</strong> – {{ review.created_at|date:"d/m/Y" }}</p>
+        <p>{{ review.comment|linebreaksbr }}</p>
+        <hr>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
