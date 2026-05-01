@@ -43,3 +43,18 @@ class Products(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Reviews(models.Model):
+    """Customer reviews for products."""
+
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='reviews')
+    customer = models.ForeignKey('accounts.Accounts', on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveIntegerField(default=5)
+    comment = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Review for {self.product.name} by {self.customer.username}'
