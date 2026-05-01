@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'reviews',
     'communityGroup',
     'resturant',
+    'notifications',
 ]
 
 MIDDLEWARE = [

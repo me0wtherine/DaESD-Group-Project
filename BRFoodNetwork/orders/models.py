@@ -7,8 +7,7 @@ class Orders(models.Model):
     ORDER_STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
-        ('dispatched', 'Dispatched'),
-        ('delivered', 'Delivered'),
+        ('ready', 'Ready'),
         ('cancelled', 'Cancelled'),
     ]
     SETTLEMENT_STATUS_CHOICES = [

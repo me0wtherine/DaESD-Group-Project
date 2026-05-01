@@ -1,0 +1,10 @@
+{% if notifications %}
+    {% for notification in notifications %}
+        <div class="notification-item">
+            <p>{{ notification.message }}</p>
+            <small>{{ notification.created_at|date:"M d, Y H:i" }}</small>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No notifications yet.</p>
+{% endif %}

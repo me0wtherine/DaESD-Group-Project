@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.models import Producers
 from products.models import Products
+from notifications.models import Notification
 from .forms import StoreInfoForm, ProductForm
 
 from django.http import HttpResponse
@@ -393,5 +394,10 @@ def update_order_status(request, order_id):
 
     order.order_status = new_status
     order.save()
+    if new_status == 'ready':
+        Notification.objects.create(
+            customer=order.user,
+            message=f"Your order #{order.id:05d} from {producer.business_name} is ready for pickup. Total: £{order.total_price}. Ordered on {order.order_date.date()}."
+        )
     messages.success(request, f'Order #{order.id:05d} status updated to {order.get_order_status_display()}.')
     return redirect('producer_orders')

@@ -51,6 +51,12 @@ def payment_page(request):
     if not items.exists():
         return redirect('cart:detail')
 
+    # Bypass payment page entirely when Stripe is not configured (dev testing)
+    if not _is_stripe_configured():
+        fake_session_id = f'sim_{uuid.uuid4().hex}'
+        request.session['stripe_session_id'] = fake_session_id
+        return redirect(f'/payments/success/?session_id={fake_session_id}')
+
     # Group items by producer for multi-vendor transparency
     producers_items = {}
     total = Decimal('0.00')

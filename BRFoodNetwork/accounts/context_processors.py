@@ -1,4 +1,5 @@
 from accounts.models import Accounts, Producers
+from notifications.models import Notification
 
 
 def user_context(request):
@@ -6,6 +7,7 @@ def user_context(request):
     context = {
         'user_name': None,
         'user_type': None,
+        'notifications': [],
     }
     
     if 'user_id' in request.session:
@@ -16,6 +18,7 @@ def user_context(request):
             if user_type == 'customer':
                 user = Accounts.objects.get(id=user_id)
                 context['user_name'] = user.name
+                context['notifications'] = Notification.objects.filter(customer=user, is_read=False).order_by('-created_at')
             elif user_type == 'producer':
                 producer = Producers.objects.get(id=user_id)
                 context['user_name'] = producer.business_name
