@@ -1631,6 +1631,23 @@ a:hover {
   border-style: dashed;
 }
 
+.cart-qty-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cart-qty-input {
+    width: 55px;
+    padding: 4px;
+}
+
+.cart-qty-btn {
+    width: 55px;
+    padding: 4px;
+}
+
+
 /* -------------------Notifications window ---------------- */
 
 .notifications-drawer {

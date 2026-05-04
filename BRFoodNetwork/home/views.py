@@ -5,6 +5,7 @@ from products.models import Products, Reviews
 from accounts.models import Producers, Accounts
 
 
+
 def home(request):
     """Homepage with popular items and nearby producers."""
     # Get category filter from query parameters

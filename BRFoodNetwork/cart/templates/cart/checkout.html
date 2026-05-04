@@ -179,6 +179,25 @@
     margin-bottom: 20px;
   }
 
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.recurring-box select,
+.recurring-box input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95em;
+  box-sizing: border-box;
+}
+
   @media (max-width: 768px) {
     .checkout-container {
       grid-template-columns: 1fr;
@@ -187,6 +206,8 @@
     .order-summary {
       position: static;
     }
+
+
   }
 </style>
 
@@ -200,6 +221,34 @@
 
     <form method="POST">
       {% csrf_token %}
+
+
+  <div class="form-group recurring-box">
+  <div class="form-group">
+  <label class="checkbox-option">
+    <input type="checkbox" id="is_recurring" name="is_recurring" value="yes">
+    Make this a recurring order
+  </label>
+
+  <div id="recurring-options" style="display: none; margin-top: 10px;">
+    
+    <label for="recurring_frequency">How often?</label>
+    <select id="recurring_frequency" name="recurring_frequency">
+      <option value="">Select Frequency</option>
+      <option value="weekly">Weekly</option>
+      <option value="fortnightly">Every 2 weeks</option>
+      <option value="monthly">Monthly</option>
+    </select>
+
+    <label for="recurring_start_date">Start Date</label>
+    <input 
+      type="date" 
+      id="recurring_start_date" 
+      name="recurring_start_date"
+    >
+    
+  </div>
+</div>
 
       <div class="form-group">
         <label for="address">Address*</label>
@@ -309,6 +358,16 @@
 
 <script>
   // Update label when fulfillment type changes
+    const recurringCheckbox = document.getElementById("is_recurring");
+  const recurringOptions = document.getElementById("recurring-options");
+
+  recurringCheckbox.addEventListener("change", function () {
+    if (this.checked) {
+      recurringOptions.style.display = "block";
+    } else {
+      recurringOptions.style.display = "none";
+    }
+  });
   document.querySelectorAll('input[name="fulfillment_type"]').forEach((radio) => {
     radio.addEventListener("change", function () {
       const label = document.querySelector(".order-summary h2 + div");

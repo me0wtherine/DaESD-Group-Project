@@ -68,9 +68,28 @@
             <div class="cart-item-meta">£{{ item.price }} each</div>
           </div>
 
-          <div class="cart-item-right">
-            <div class="cart-item-qty">Qty: {{ item.quantity }}</div>
-            <div class="cart-item-line">£{{ item.line_total }}</div>
+   <div class="cart-item-right">
+    <span>Qty:</span>
+  <input 
+    type="number" 
+    name="quantity" 
+    value="{{ item.quantity }}" 
+    min="1" 
+    step="1"
+    class="cart-qty-input"
+    data-item-id="{{ item.id}}"
+    data-price="{{ item.price }}"
+    onchange="updateCartQuantity(this)"
+  >
+   </div>
+</form>
+
+<input type="hidden" name"csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+
+<div class="cart-item-line" id="line-total-{{ item.id }}">
+  £{{ item.line_total }}
+</div>
           </div>
         </div>
       {% endfor %}
@@ -91,7 +110,7 @@
   <div class="cart-summary">
     <div class="cart-summary-row">
       <span>Subtotal</span>
-      <strong>£{{ cart_total|default:"0.00" }}</strong>
+      <strong id="cart-total">£{{ cart_total|default:"0.00" }} </strong>
     </div>
     <div class="cart-summary-row muted">
       <span>Delivery</span>
@@ -156,6 +175,40 @@
                 }
             }
         });
+
+        function getCSRFToken() {
+  return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+function updateCartQuantity(input) {
+  const itemId = input.dataset.itemId;
+  const quantity = parseInt(input.value);
+  const price = parseFloat(input.dataset.price);
+
+  const lineTotal = price * quantity;
+
+  document.getElementById(`line-total-${itemId}`).innerText = `£${lineTotal.toFixed(2)}`;
+
+  let newCartTotal = 0;
+
+  document.querySelectorAll(".cart-qty-input").forEach(function(qtyInput) {
+    const qty = parseInt(qtyInput.value);
+    const itemPrice = parseFloat(qtyInput.dataset.price);
+
+    newCartTotal += qty * itemPrice;
+  });
+
+  document.getElementById("cart-total").innerText = `£${newCartTotal.toFixed(2)}`;
+
+  fetch(`/cart/update/${itemId}/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-CSRFToken": getCSRFToken()
+    },
+    body: `quantity=${quantity}`
+  });
+}
     </script>
 </body>
 </html>

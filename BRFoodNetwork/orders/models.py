@@ -31,6 +31,10 @@ class Orders(models.Model):
     settlement_status = models.CharField(max_length=20, choices=SETTLEMENT_STATUS_CHOICES, default='pending')
     settled_date = models.DateTimeField(blank=True, null=True)
 
+    is_recurring = models.BooleanField(default=False)
+    recurring_frequency = models.CharField(max_length=20, blank=True, default="")
+    recurring_start_date = models.DateField(blank=True, null=True)
+
     class Meta:
         verbose_name_plural = 'Orders'
 
@@ -46,3 +50,7 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'{self.quantity}x {self.product.name} (Order #{self.order.id})'
+
+is_recurring = models.BooleanField(default=False)
+recurring_frequency = models.CharField(max_length=20, blank=True, default="")
+recurring_start_date = models.DateField(blank=True, null=True)

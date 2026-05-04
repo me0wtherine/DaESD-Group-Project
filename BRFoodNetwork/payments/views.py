@@ -230,6 +230,10 @@ def payment_success(request):
         order_status='confirmed',
         payment_method='stripe' if not is_simulated else 'simulated',
         stripe_session_id=session_id,
+        is_recurring=checkout_data.get('is_recurring', False),
+        recurring_frequency=checkout_data.get('recurring_frequency',''),
+        recurring_start_date=checkout_data.get('recurring_start_date') or None,
+
     )
 
     # Create order items and track per-producer totals
