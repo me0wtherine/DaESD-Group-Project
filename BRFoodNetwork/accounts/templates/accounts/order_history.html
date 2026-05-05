@@ -4,119 +4,275 @@
 
 {% block content %}
 <div class="manage-store-wrapper">
-    <div class="manage-topbar">
-        <h1 class="manage-title">Order History</h1>
-        <div class="manage-topbar-right">
-            <span class="manage-farm-name">{{ customer.name }}</span>
-        </div>
+  <div class="manage-topbar">
+    <h1 class="manage-title">Order History</h1>
+    <div class="manage-topbar-right">
+      <span class="manage-farm-name">{{ customer.name }}</span>
     </div>
+  </div>
 
-    <div class="manage-main">
-        {% if orders %}
-            {% for order in orders %}
-                <div class="order-card">
-                    <div class="order-header">
-                        <h2 class="order-number">Order {{ order.id|stringformat:"05d" }}</h2>
-                    </div>
+  <div class="manage-main">
+    {% if orders %}
+      {% for order in orders %}
+        <div class="order-card">
+          <div class="order-header">
+            <h2 class="order-number">Order {{ order.id|stringformat:"05d" }}</h2>
 
-                    <div class="order-details-grid">
-                        <div class="order-left">
-                            <div class="order-field">
-                                <label class="order-label">Order Date:</label>
-                                <p class="order-value">{{ order.order_date|date:"d/m/Y" }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Delivery Address:</label>
-                                <p class="order-value">{{ order.delivery_address }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Fulfilment Type:</label>
-                                <p class="order-value">{{ order.fulfillment_type|title }}</p>
-                            </div>
-                        </div>
-
-                        <div class="order-right">
-                            <div class="order-field">
-                                <label class="order-label">Delivery Date:</label>
-                                <p class="order-value">{{ order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Status:</label>
-                                <p class="order-value">{{ order.get_order_status_display }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Total Price:</label>
-                                <p class="order-value">£{{ order.total_price }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">
-                <p class="empty-icon">📦</p>
-                <h3>No orders yet</h3>
-                <p>Your previous orders will appear here once you place them.</p>
+            <div class="order-actions">
+              <button type="button" class="view-details-btn" onclick="toggleOrderDetails('{{ order.id }}')">
+                View Details
+              </button>
+              <a href="{% url 'reorder' order.id %}" class="reorder-btn">Reorder</a>
             </div>
-        {% endif %}
-    </div>
+          </div>
+
+          <div class="order-details-grid">
+            <div class="order-left">
+              <div class="order-field">
+                <label class="order-label">Order Date:</label>
+                <p class="order-value">{{ order.order_date|date:"d/m/Y" }}</p>
+              </div>
+
+              <div class="order-field">
+                <label class="order-label">Delivery Address:</label>
+                <p class="order-value">{{ order.delivery_address }}</p>
+              </div>
+
+              <div class="order-field">
+                <label class="order-label">Fulfilment Type:</label>
+                <p class="order-value">{{ order.fulfillment_type|title }}</p>
+              </div>
+            </div>
+
+            <div class="order-right">
+              <div class="order-field">
+                <label class="order-label">Delivery Date:</label>
+                <p class="order-value">{{ order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
+              </div>
+
+              <div class="order-field">
+                <label class="order-label">Status:</label>
+                <p class="order-value">{{ order.get_order_status_display }}</p>
+              </div>
+
+  </div>
+
+              
+            </div>
+          </div>
+
+          {% if order.is_recurring %}
+            <div class="recurring-info">
+              Recurring order: {{ order.recurring_frequency|title }}
+              {% if order.recurring_start_date %}
+                from {{ order.recurring_start_date|date:"d/m/Y" }}
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <div id="order-details-{{ order.id }}" class="order-full-details" style="display: none;">
+
+            <div class="order-extra-info">
+  <div class="order-field">
+    <label class="order-label">Total Price:</label>
+    <p class="order-value">£{{ order.total_price }}</p>
+  </div>
+
+
+  <div class="order-field">
+    <label class="order-label">Payment:</label>
+    <p class="order-value">
+     Paid by Card<br> <!-- simulated payment right now-->
+      <span class="masked-payment">
+        **** **** **** {{ order.stripe_session_id|slice:"-4:" }} <!-- taken from the stripe session ID. fake payment-->
+      </span>
+    </p>
+  </div>
+</div>
+            <h3>Items Ordered</h3>
+
+            <table class="order-items-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order.items.all %}
+                  <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>£{{ item.price }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <p class="empty-icon">📦</p>
+        <h3>No orders yet</h3>
+        <p>Your previous orders will appear here once you place them.</p>
+      </div>
+    {% endif %}
+  </div>
 </div>
 
 <style>
-    .order-card {
-        background: #f9f9f9;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
-    }
+  .order-card {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
 
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+
+  .order-number {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+
+  .order-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .view-details-btn,
+  .reorder-btn {
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+  }
+
+  .view-details-btn {
+    background: #e0e0e0;
+    color: #333;
+  }
+
+  .reorder-btn {
+    background: #2e7d32;
+    color: white;
+  }
+
+  .order-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 20px;
+  }
+
+  .order-field {
+    margin-bottom: 16px;
+  }
+
+  .order-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #666;
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .order-value {
+    font-size: 14px;
+    color: #333;
+    margin: 0;
+    word-break: break-word;
+  }
+
+  .masked-payment {
+    color: #777;
+    font-size: 0.9rem;
+  }
+
+  .recurring-info {
+    background: #e8f5e9;
+    border-left: 4px solid #2e7d32;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    color: #2e7d32;
+    font-weight: 600;
+  }
+
+  .order-full-details {
+    background: white;
+    border: 1px solid #eee;
+    padding: 16px;
+    border-radius: 6px;
+    margin-top: 15px;
+  }
+
+  .order-full-details h3 {
+    margin-top: 0;
+  }
+
+  .order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .order-items-table th,
+  .order-items-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+
+  .order-items-table th {
+    background: #f5f5f5;
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  @media (max-width: 768px) {
     .order-header {
-        border-bottom: 2px solid #ddd;
-        padding-bottom: 16px;
-        margin-bottom: 20px;
-    }
-
-    .order-number {
-        font-size: 18px;
-        font-weight: 600;
-        color: #333;
-        margin: 0;
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .order-details-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 40px;
-        margin-bottom: 24px;
+      grid-template-columns: 1fr;
+      gap: 20px;
     }
 
-    .order-field {
-        margin-bottom: 16px;
+    .order-extra-info {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
     }
-
-    .order-label {
-        font-weight: 600;
-        font-size: 13px;
-        color: #666;
-        display: block;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .order-value {
-        font-size: 14px;
-        color: #333;
-        margin: 0;
-        word-break: break-word;
-    }
-
-    @media (max-width: 768px) {
-        .order-details-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-    }
+  }
 </style>
+
+<script>
+  function toggleOrderDetails(orderId) {
+    const details = document.getElementById("order-details-" + orderId);
+
+    if (details.style.display === "none") {
+      details.style.display = "block";
+    } else {
+      details.style.display = "none";
+    }
+  }
+</script>
 {% endblock %}

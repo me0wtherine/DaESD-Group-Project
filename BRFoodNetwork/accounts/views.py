@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -6,6 +6,7 @@ from .forms import SignupForm, ProducerSignupForm, CustomerLoginForm, ProducerLo
 from .models import Accounts, Producers
 from .geocoding import geocode_address, is_within_bristol_radius
 from orders.models import Orders
+from cart.models import Cart, CartItem
 
 
 def account_type_signup(request):
@@ -145,6 +146,37 @@ def order_history(request):
         'customer': customer,
         'orders': orders,
     })
+
+def reorder(request, order_id):
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+
+    if not user_id or user_type != 'customer':
+        messages.error(request, 'You must be logged in as a customer to reorder.')
+        return redirect('customer_login')
+    
+    customer = Accounts.objects.filter(id=user_id).first()
+    if not customer:
+        request.session.flush()
+        return redirect('customer_login')
+    order = get_object_or_404(Orders, id=order_id, user=customer)
+
+    cart, _ = Cart.objects.get_or_create(user=customer)
+
+    for item in order.items.all():
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=item.product,
+            defaults={'quantity': item.quantity}
+
+        )
+
+        if not created:
+            cart_item.quantity += item.quantity
+            cart_item.save()
+        
+        messages.success(request, 'Items from this order have been added to your basket.')
+        return redirect('cart:detail')
 
 
 def logout_view(request):

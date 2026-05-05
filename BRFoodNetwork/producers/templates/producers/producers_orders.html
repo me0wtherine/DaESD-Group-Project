@@ -43,6 +43,10 @@
                 <div class="order-card">
                     <div class="order-header">
                         <h2 class="order-number">Order {{ entry.item.order.id|stringformat:"05d" }}</h2>
+
+                        {% if entry.item.order.is_recurring %}
+                        <span class="recurring-badge">Recurring Order</span>
+                        {% endif %}
                     </div>
 
                     <div class="order-details-grid">
@@ -63,6 +67,18 @@
                                 <label class="order-label">Pickup or Delivery:</label>
                                 <p class="order-value">{{ entry.item.order.fulfillment_type|title }}</p>
                             </div>
+
+                            {% if entry.item.order.is_recurring %}
+                            <div class="order-field">
+                                <label class="order-label">Recurring</label>
+                                <p class="order-value">
+                                    {{ entry.item.order.recurring_frequency|title }}
+                                    {% if entry.item.order.recurring_start_date %}
+                                    from {{ entry.item.order.recurring_start_date|date:"d/m/Y" }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="order-right">
@@ -352,6 +368,22 @@
             grid-template-columns: 1fr;
             gap: 20px;
         }
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .recurring-badge {
+        background: white;
+        color: green;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
     }
 </style>
 
