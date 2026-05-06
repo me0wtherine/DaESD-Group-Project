@@ -27,6 +27,7 @@ def cart_context(request):
                     "price": item.product.price,
                     "quantity": item.quantity,
                     "line_total": line_total,
+                    "unit": item.product.unit,
                 })
 
                 cart_total += line_total

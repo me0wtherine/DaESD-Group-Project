@@ -7,6 +7,7 @@ from accounts.models import Accounts
 from cart.models import Cart, CartItem
 from products.models import Products
 from orders.models import Orders, OrderItem
+from django.http import JsonResponse
 
 
 def _get_customer_cart(user_id):
@@ -100,7 +101,7 @@ def update_quantity(request, item_id):
     item.quantity = quantity
     item.save()
 
-    return redirect("cart:detail")
+    return JsonResponse({"status": "ok"})
 
 
 @require_http_methods(["POST"])
@@ -149,6 +150,10 @@ def checkout(request):
         postcode = request.POST.get("postcode", "").strip()
         fulfillment_type = request.POST.get("fulfillment_type", "delivery")
         delivery_date_str = request.POST.get("delivery_date", "")
+
+        is_recurring = request.POST.get("is_recurring") == "yes"
+        recurring_frequency = request.POST.get("recurring_frequency", "")
+        recurring_start_date = request.POST.get("recurring_start_date", "")
 
         if not address or not postcode:
             return render(
@@ -200,11 +205,14 @@ def checkout(request):
                 },
             )
 
-        # Store checkout data in session and redirect to payment page
+        #storing the checkout data in session and redirect to payment page
         request.session['checkout_data'] = {
             'delivery_address': delivery_address,
             'fulfillment_type': fulfillment_type,
             'delivery_date': delivery_date_str,
+            'is_recurring': is_recurring,
+            'recurring_frequency': recurring_frequency,
+            'recurring_start_date': recurring_start_date
         }
 
         return redirect('payments:payment_page')
