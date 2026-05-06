@@ -275,24 +275,28 @@ def surplus_deals(request):
 def producer_payouts(request):
     """Display weekly settlements and payouts for the logged-in producer"""
     from orders.models import Orders
-    from datetime import datetime,timedelta
+    from datetime import datetime, timedelta, date
     from django.utils import timezone
+    from django.db.models import Sum
+    from django.db.models import Sum, F, DecimalField, ExpressionWrapper
+    from orders.models import OrderItem
+    from django.db.models import Q
     
     producer = get_object_or_404(Producers, id=request.session['user_id'])
     
-    #Get the start/end dates of the current week
+    # Get the start/end dates of the current week
     week_offset = int(request.GET.get('week', 0))
     today = datetime.now().date()
     target_date = today + timedelta(weeks=week_offset)
     week_start = target_date - timedelta(days=target_date.weekday())
     week_end = week_start + timedelta(days=6)
 
-    # Get all orders for that weeks settlement calculations
+    # Get all orders for that week's settlement calculations
     all_orders = Orders.objects.filter(
         order_date__date__gte=week_start,
         order_date__date__lte=week_end,
         items__product__producer=producer,
-        order_status='done',
+        order_status='ready',
     ).distinct().order_by('order_date')
     
     # Calculate settlement data
@@ -300,16 +304,16 @@ def producer_payouts(request):
     total_orders_value = 0
     total_commission = 0
     total_payout = 0
-    
+
     for order in all_orders:
         order_value = float(order.total_price)
         commission = order_value * 0.05  # 5% network commission
         payout = order_value * 0.95  # 95% producer payment
-        
+
         total_orders_value += order_value
         total_commission += commission
         total_payout += payout
-        
+
         settlements.append({
             'order': order,
             'order_value': order_value,
@@ -317,7 +321,23 @@ def producer_payouts(request):
             'payout': payout,
             'status': order.settlement_status,
         })
+
+    # Calculate total payments for the tax year
+    tax_year_start, tax_year_label = get_tax_year_start(today)
     
+    tax_year_total = 0
+    tax_year_orders = Orders.objects.filter(
+        order_date__date__gte=tax_year_start,
+        items__product__producer=producer,
+        order_status='ready',
+    ).distinct()
+
+    for order in tax_year_orders:
+        # Only sum items belonging to this producer, not the full order total
+        producer_items = order.items.filter(product__producer=producer)
+        for item in producer_items:
+            tax_year_total += float(item.price) * float(item.quantity) * 0.95
+
     return render(request, 'producers/producer_payouts.html', {
         'producer': producer,
         'settlements': settlements,
@@ -327,8 +347,19 @@ def producer_payouts(request):
         'week_start_date': week_start,
         'week_end_date': week_end,
         'week_offset': week_offset,
+        'tax_year_start': tax_year_start,
+        'tax_year_label': tax_year_label,
+        'tax_year_total': tax_year_total,
     })
 
+# Calculate the tax year
+def get_tax_year_start(today):
+    from datetime import date
+
+    year = today.year
+    if today < date(year, 4, 6):
+        return date(year - 1, 4, 6), year - 1
+    return date(year, 4, 6), year
 
 @producer_required
 def weekly_settlements(request):

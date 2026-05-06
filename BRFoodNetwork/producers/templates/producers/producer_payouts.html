@@ -61,6 +61,10 @@
                     <div class="summary-label">Your Payment (95%)</div>
                     <div class="summary-amount highlight">£{{ total_payout|floatformat:2 }}</div>
                 </div>
+                <div class="summary-card tax">
+                    <div class="summary-label">Tax Year {{ tax_year_label }}/{{ tax_year_label|add:1 }}</div>
+                    <div class="summary-amount">£{{ tax_year_total|floatformat:2 }}</div>
+                </div>
             </div>
 
             <!-- Settlements Table -->
