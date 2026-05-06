@@ -275,13 +275,25 @@ def surplus_deals(request):
 def producer_payouts(request):
     """Display weekly settlements and payouts for the logged-in producer"""
     from orders.models import Orders
-    from datetime import timedelta
+    from datetime import datetime,timedelta
     from django.utils import timezone
     
     producer = get_object_or_404(Producers, id=request.session['user_id'])
     
-    # Get all orders for settlement calculations
-    all_orders = Orders.objects.all().order_by('-order_date')
+    #Get the start/end dates of the current week
+    week_offset = int(request.GET.get('week', 0))
+    today = datetime.now().date()
+    target_date = today + timedelta(weeks=week_offset)
+    week_start = target_date - timedelta(days=target_date.weekday())
+    week_end = week_start + timedelta(days=6)
+
+    # Get all orders for that weeks settlement calculations
+    all_orders = Orders.objects.filter(
+        order_date__date__gte=week_start,
+        order_date__date__lte=week_end,
+        items__product__producer=producer,
+        order_status='done',
+    ).distinct().order_by('order_date')
     
     # Calculate settlement data
     settlements = []
@@ -312,6 +324,9 @@ def producer_payouts(request):
         'total_orders_value': total_orders_value,
         'total_commission': total_commission,
         'total_payout': total_payout,
+        'week_start_date': week_start,
+        'week_end_date': week_end,
+        'week_offset': week_offset,
     })
 
 

@@ -41,6 +41,12 @@
         <!-- ===== Main Content ===== -->
         <div class="manage-main">
 
+            <div class="week-label">
+                <a href="?week={{week_offset|add:-1}}" class="week-arrow">◀</a>
+                    <span>{{week_start_date}}  -  {{week_end_date}}</span>
+                <a href="?week={{week_offset|add:1}}" class="week-arrow">▶</a>
+            </div>
+
             <!-- Settlement Summary Cards -->
             <div class="settlement-summary">
                 <div class="summary-card total-value">
@@ -275,6 +281,15 @@
         border: none;
     }
 
+    .week-arrow{
+        color: #000000;
+        text-decoration: none;
+    }
+
+    .week-arrow:hover{
+        text-decoration: none;
+    }
+
     @media (max-width: 768px) {
         .settlement-summary {
             grid-template-columns: 1fr;
@@ -292,6 +307,8 @@
         .summary-amount {
             font-size: 24px;
         }
+
+
     }
 </style>
 
