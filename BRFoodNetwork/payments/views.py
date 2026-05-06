@@ -15,6 +15,7 @@ from accounts.geocoding import haversine
 from cart.models import Cart
 from orders.models import Orders, OrderItem
 from payments.models import Payments, WeeklyPayment
+from notifications.models import Notification
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 COMMISSION_RATE = Decimal('0.05')
@@ -213,10 +214,17 @@ def payment_success(request):
     for item in items:
         total += item.product.price * item.quantity
 
-    # Parse delivery date
+        # Parse delivery date
     delivery_date = None
+    producer_delivery_dates = checkout_data.get('producer_delivery_dates', {})
+
+    first_delivery_date = None
+
+    if producer_delivery_dates:
+        first_delivery_date = list(producer_delivery_dates.values())[0]
+
     try:
-        delivery_date = datetime.strptime(checkout_data.get('delivery_date', ''), '%Y-%m-%d')
+        delivery_date = datetime.strptime(first_delivery_date, '%Y-%m-%d')
     except (ValueError, TypeError):
         pass
 
@@ -245,6 +253,13 @@ def payment_success(request):
             quantity=item.quantity,
             price=item.product.price,
         )
+
+
+        Notification.objects.create(
+            producer=item.product.producer,
+            title="New order recieved",
+            message=f"Order #{order.id} includes {item.quantity} x {item.product.name}."
+        ) 
         producer = item.product.producer
         item_total = item.product.price * item.quantity
         if producer.id not in producer_totals:
@@ -271,8 +286,16 @@ def payment_success(request):
     request.session.pop('checkout_data', None)
     request.session.pop('stripe_session_id', None)
 
-    return render(request, 'cart/order_confirmed.html', {'order': order})
+    producer_names = {}
 
+    for item in items:
+       producer_names[str(item.product.producer.id)] = str(item.product.producer)
+
+    return render(request, 'cart/order_confirmed.html', {
+      'order': order,
+      'producer_delivery_dates': producer_delivery_dates,
+      'producer_names': producer_names,
+})
 
 def payment_cancel(request):
     """Handle cancelled Stripe payment."""

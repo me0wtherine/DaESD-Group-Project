@@ -282,21 +282,39 @@
       </div>
 
       <div class="form-group">
-        <label for="delivery_date">
-          {% if fulfillment_type == 'collection' %}
-            Collection Date (minimum 48 hours from now)*
-          {% else %}
-            Delivery Date (minimum 48 hours from now)*
-          {% endif %}
-        </label>
-        <input
-          type="date"
-          id="delivery_date"
-          name="delivery_date"
-          min="{{ min_date }}"
-          required
-        />
-      </div>
+  <label class="checkbox-option">
+    <input type="checkbox" id="same_delivery_date" name="same_delivery_date" value="yes">
+    Use the same delivery/collection date for all producers
+  </label>
+</div>
+
+<div class="form-group" id="common-date-box" style="display: none;">
+  <label for="common_delivery_date">Select date for all producers*</label>
+  <input
+    type="date"
+    id="common_delivery_date"
+    name="common_delivery_date"
+    min="{{ min_date }}"
+  />
+</div>
+
+<div id="producer-date-boxes">
+  {% for group in producer_groups %}
+    <div class="form-group">
+      <label for="delivery_date_{{ group.producer.id }}">
+        Date for {{ group.producer }}*
+      </label>
+      <input
+        type="date"
+        id="delivery_date_{{ group.producer.id }}"
+        name="delivery_date_{{ group.producer.id }}"
+        class="producer-date"
+        min="{{ min_date }}"
+        required
+      />
+    </div>
+  {% endfor %}
+</div>
 
       <div class="checkout-actions">
         <button type="submit" class="checkout-btn">Continue to Payment</button>
@@ -308,19 +326,30 @@
   <div class="order-summary">
     <h2>Order Summary</h2>
 
-    <div class="summary-items">
-      {% for item in items %}
-        <div class="summary-item">
-          <div>
-            <div class="summary-item-name">{{ item.product.name }}</div>
-            <div class="summary-item-qty">Qty: {{ item.quantity }} × £{{ item.product.price }}</div>
-          </div>
-          <div class="summary-item-price">
-            £{% widthratio item.product.price 1 item.quantity %}
-          </div>
-        </div>
-      {% endfor %}
+<div class="summary-items">
+  {% for group in producer_groups %}
+    <div style="margin-bottom: 18px;">
+      <h3 style="font-size: 1em; margin-bottom: 10px; color: #2e7d32;">
+        {{ group.producer }}
+      </h3>
+
+      {% for item in group.items %}
+      <div class="summary-item"><div>
+    <div class="summary-item-name">{{ item.product.name }}</div>
+    <div class="summary-item-qty">
+      Qty: {{ item.quantity }} × £{{ item.product.price }}
     </div>
+  </div>
+</div>
+      {% endfor %}
+
+      <div style="display:flex; justify-content:space-between; font-weight:bold; margin-top:8px;">
+        <span>Producer subtotal:</span>
+        <span>£{{ group.subtotal }}</span>
+      </div>
+    </div>
+  {% endfor %}
+</div>
 
     <div class="summary-total">
       <span>Total:</span>
@@ -337,26 +366,37 @@
 </div>
 
 <script>
-  // Update label when fulfillment type changes
-    const recurringCheckbox = document.getElementById("is_recurring");
+  const recurringCheckbox = document.getElementById("is_recurring");
   const recurringOptions = document.getElementById("recurring-options");
 
   recurringCheckbox.addEventListener("change", function () {
-    if (this.checked) {
-      recurringOptions.style.display = "block";
-    } else {
-      recurringOptions.style.display = "none";
-    }
+    recurringOptions.style.display = this.checked ? "block" : "none";
   });
-  document.querySelectorAll('input[name="fulfillment_type"]').forEach((radio) => {
-    radio.addEventListener("change", function () {
-      const label = document.querySelector(".order-summary h2 + div");
-      if (this.value === "collection") {
-        label.textContent = "Collection Date (minimum 48 hours from now)*";
-      } else {
-        label.textContent = "Delivery Date (minimum 48 hours from now)*";
-      }
-    });
+
+  const sameDateCheckbox = document.getElementById("same_delivery_date");
+  const commonDateBox = document.getElementById("common-date-box");
+  const commonDateInput = document.getElementById("common_delivery_date");
+  const producerDateBoxes = document.getElementById("producer-date-boxes");
+  const producerDateInputs = document.querySelectorAll(".producer-date");
+
+  sameDateCheckbox.addEventListener("change", function () {
+    if (this.checked) {
+      commonDateBox.style.display = "block";
+      commonDateInput.required = true;
+
+      producerDateBoxes.style.display = "none";
+      producerDateInputs.forEach(input => {
+        input.required = false;
+      });
+    } else {
+      commonDateBox.style.display = "none";
+      commonDateInput.required = false;
+
+      producerDateBoxes.style.display = "block";
+      producerDateInputs.forEach(input => {
+        input.required = true;
+      });
+    }
   });
 </script>
 {% endblock %}

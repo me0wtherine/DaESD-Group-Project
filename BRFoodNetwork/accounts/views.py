@@ -231,6 +231,7 @@ def admin_login(request):
                     request.session['user_id'] = admin.id
                     request.session['user_type'] = 'admin'
                     request.session['user_name'] = admin.name
+                    print(request.session.get('user_type'))
                     messages.success(request, f'Welcome back, {admin.name}!')
                     return redirect('admin_dashboard')
                 else:
