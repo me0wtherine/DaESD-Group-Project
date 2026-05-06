@@ -158,95 +158,119 @@ def checkout(request):
     if not cart:
         return redirect("cart:detail")
 
-    items = cart.items.select_related("product").all()
+    items = cart.items.select_related("product", "product__producer").all()
     if not items.exists():
         return redirect("cart:detail")
+
+    producer_groups = {}
+    total = Decimal("0.00")
+
+    for item in items:
+        line_total = item.product.price * item.quantity
+        total += line_total
+
+        producer = item.product.producer
+
+        if producer.id not in producer_groups:
+            producer_groups[producer.id] = {
+                "producer": producer,
+                "items": [],
+                "subtotal": Decimal("0.00"),
+            }
+
+        producer_groups[producer.id]["items"].append(item)
+        producer_groups[producer.id]["subtotal"] += line_total
+
+    min_date = (datetime.now() + timedelta(hours=48)).strftime("%Y-%m-%d")
 
     if request.method == "POST":
         address = request.POST.get("address", "").strip()
         postcode = request.POST.get("postcode", "").strip()
         fulfillment_type = request.POST.get("fulfillment_type", "delivery")
-        delivery_date_str = request.POST.get("delivery_date", "")
+
+        same_delivery_date = request.POST.get("same_delivery_date") == "yes"
+        common_delivery_date = request.POST.get("common_delivery_date", "")
 
         is_recurring = request.POST.get("is_recurring") == "yes"
         recurring_frequency = request.POST.get("recurring_frequency", "")
         recurring_start_date = request.POST.get("recurring_start_date", "")
 
         if not address or not postcode:
-            return render(
-                request,
-                "cart/checkout.html",
-                {
-                    "items": items,
-                    "customer": customer,
-                    "error": "Address and postcode are required.",
-                },
-            )
+            return render(request, "cart/checkout.html", {
+                "items": items,
+                "producer_groups": producer_groups.values(),
+                "total": total,
+                "customer": customer,
+                "min_date": min_date,
+                "error": "Address and postcode are required.",
+            })
 
         delivery_address = f"{address}, {postcode}"
 
         if fulfillment_type not in ["delivery", "collection"]:
-            return render(
-                request,
-                "cart/checkout.html",
-                {
-                    "items": items,
-                    "customer": customer,
-                    "error": "Invalid fulfillment type.",
-                },
-            )
+            return render(request, "cart/checkout.html", {
+                "items": items,
+                "producer_groups": producer_groups.values(),
+                "total": total,
+                "customer": customer,
+                "min_date": min_date,
+                "error": "Invalid fulfillment type.",
+            })
 
-        try:
-            delivery_date = datetime.strptime(delivery_date_str, "%Y-%m-%d")
-        except ValueError:
-            return render(
-                request,
-                "cart/checkout.html",
-                {
-                    "items": items,
-                    "customer": customer,
-                    "error": "Invalid delivery date format.",
-                },
-            )
+        producer_delivery_dates = {}
 
-        now = datetime.now()
-        min_delivery_date = now + timedelta(hours=48)
-        if delivery_date < min_delivery_date.replace(hour=0, minute=0, second=0, microsecond=0):
-            return render(
-                request,
-                "cart/checkout.html",
-                {
+        for group in producer_groups.values():
+            producer = group["producer"]
+
+            if same_delivery_date:
+                delivery_date_str = common_delivery_date
+            else:
+                delivery_date_str = request.POST.get(f"delivery_date_{producer.id}", "")
+
+            try:
+                delivery_date = datetime.strptime(delivery_date_str, "%Y-%m-%d")
+            except ValueError:
+                return render(request, "cart/checkout.html", {
                     "items": items,
+                    "producer_groups": producer_groups.values(),
+                    "total": total,
                     "customer": customer,
+                    "min_date": min_date,
+                    "error": "Please select a valid delivery date for each producer.",
+                })
+
+            now = datetime.now()
+            min_delivery_date = now + timedelta(hours=48)
+
+            if delivery_date < min_delivery_date.replace(hour=0, minute=0, second=0, microsecond=0):
+                return render(request, "cart/checkout.html", {
+                    "items": items,
+                    "producer_groups": producer_groups.values(),
+                    "total": total,
+                    "customer": customer,
+                    "min_date": min_date,
                     "error": "Delivery/collection date must be at least 48 hours from now.",
-                },
-            )
+                })
 
-        #storing the checkout data in session and redirect to payment page
-        request.session['checkout_data'] = {
-            'delivery_address': delivery_address,
-            'fulfillment_type': fulfillment_type,
-            'delivery_date': delivery_date_str,
-            'is_recurring': is_recurring,
-            'recurring_frequency': recurring_frequency,
-            'recurring_start_date': recurring_start_date
+            producer_delivery_dates[str(producer.id)] = delivery_date_str
+
+        request.session["checkout_data"] = {
+            "delivery_address": delivery_address,
+            "fulfillment_type": fulfillment_type,
+            "same_delivery_date": same_delivery_date,
+            "common_delivery_date": common_delivery_date,
+            "producer_delivery_dates": producer_delivery_dates,
+            "is_recurring": is_recurring,
+            "recurring_frequency": recurring_frequency,
+            "recurring_start_date": recurring_start_date,
         }
 
-        return redirect('payments:payment_page')
+        return redirect("payments:payment_page")
 
-    total = Decimal("0.00")
-    for item in items:
-        total += item.product.price * item.quantity
-
-    min_date = (datetime.now() + timedelta(hours=48)).strftime("%Y-%m-%d")
-
-    return render(
-        request,
-        "cart/checkout.html",
-        {
-            "items": items,
-            "total": total,
-            "customer": customer,
-            "min_date": min_date,
-        },
-    )
+    return render(request, "cart/checkout.html", {
+        "items": items,
+        "producer_groups": producer_groups.values(),
+        "total": total,
+        "customer": customer,
+        "min_date": min_date,
+    })
