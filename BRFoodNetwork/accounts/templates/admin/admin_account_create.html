@@ -1,0 +1,26 @@
+{% extends "home/base.html" %}
+
+{% block title %}Admin Account Create{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+        <h1>Admin Account Create</h1>
+        <p>Create your admin account</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary btn-lg">Sign Up</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

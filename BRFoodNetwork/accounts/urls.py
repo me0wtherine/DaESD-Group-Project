@@ -10,4 +10,7 @@ urlpatterns = [
     path('login/producer/', views.producer_login, name='producer_login'),
     path('orders/', views.order_history, name='order_history'),
     path('logout/', views.logout_view, name='logout'),
+    path('admin/', views.admin_home, name='admin_dashboard'),
+    path('admin/login/', views.admin_login, name='admin_login'),
+    path('admin/create_admin/', views.create_admin_account, name='create_admin_account'),
 ]

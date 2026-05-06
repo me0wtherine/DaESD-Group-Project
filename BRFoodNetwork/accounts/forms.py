@@ -1,5 +1,5 @@
 from django import forms
-from .models import Accounts, Producers
+from .models import Accounts, Producers, Admins
 
 
 class SignupForm(forms.ModelForm):
@@ -32,5 +32,20 @@ class CustomerLoginForm(forms.Form):
 
 class ProducerLoginForm(forms.Form):
     """Producer log-in form."""
+    email = forms.EmailField()
+    password = forms.CharField(widget=forms.PasswordInput())
+
+class AdminSignupForm(forms.ModelForm):
+    """Admin account creation form."""
+
+    class Meta:
+        model = Admins 
+        fields = ['name', 'email', 'password']
+        widgets = {
+            'password': forms.PasswordInput(),
+        }
+
+class AdminLoginForm(forms.Form):
+    """Admin log-in form."""
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput())

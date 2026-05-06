@@ -45,7 +45,20 @@ class Producers(models.Model):
 
     def __str__(self):
         return self.business_name
+    
+class Admins(models.Model): 
+    """Admin accounts for managing the network."""
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
+
+    class Meta:
+        verbose_name_plural = 'Admins'
+
+    def __str__(self):
+        return self.name
+
 
 #class Restaurant(models.Model): RestaurantName
 #class Communities(models.Model): CommunityName, Status, Inst_email
-#class Individuals(models.Model): 
+

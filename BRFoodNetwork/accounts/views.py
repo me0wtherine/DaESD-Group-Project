@@ -2,11 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 
-from .forms import SignupForm, ProducerSignupForm, CustomerLoginForm, ProducerLoginForm
-from .models import Accounts, Producers
+from .forms import AdminSignupForm, AdminLoginForm, SignupForm, ProducerSignupForm, CustomerLoginForm, ProducerLoginForm
+from .models import Accounts, Producers, Admins
 from .geocoding import geocode_address, is_within_bristol_radius
 from orders.models import Orders
-
 
 def account_type_signup(request):
     """Choose between customer or producer sign-up."""
@@ -88,6 +87,7 @@ def customer_login(request):
                 if check_password(password, user.password):
                     request.session['user_id'] = user.id
                     request.session['user_type'] = 'customer'
+                    request.session['user_name'] = user.name
                     messages.success(request, f'Welcome back, {user.name}!')
                     return redirect('home')
                 else:
@@ -112,6 +112,7 @@ def producer_login(request):
                 if check_password(password, producer.password):
                     request.session['user_id'] = producer.id
                     request.session['user_type'] = 'producer'
+                    request.session['user_name'] = producer.business_name
                     messages.success(request, f'Welcome back, {producer.business_name}!')
                     return redirect('home')
                 else:
@@ -152,3 +153,59 @@ def logout_view(request):
     request.session.flush()
     messages.success(request, 'You have been logged out successfully')
     return redirect('home')
+
+def admin_home(request):
+    """Admin dashboard showing all producers and their statuses."""
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+    user_name = request.session.get('user_name')
+
+    if not user_id or user_type != 'admin':
+        messages.error(request, 'You must be logged in as an admin to access the admin dashboard.')
+        return redirect('account_type_login')
+
+    producers = Producers.objects.all()
+
+    return render(request, 'admin/admin_home.html', {
+        'user_name': user_name,
+        'producers': producers,
+    })
+
+def create_admin_account(request):
+    """Utility function to create an admin account."""
+    if request.method == 'POST':
+        form = AdminSignupForm(request.POST)
+        if form.is_valid():
+            admin = form.save(commit=False)
+            admin.password = make_password(form.cleaned_data['password'])
+            admin.save()
+            messages.success(request, 'Admin account created successfully!')
+            return redirect('admin_dashboard')
+    else:
+        form = AdminSignupForm()
+
+    return render(request, 'admin/admin_account_create.html', {'form': form})
+    
+def admin_login(request):
+    """Admin log-in with email and password."""
+    if request.method == 'POST':
+        form = AdminLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            try:
+                admin = Admins.objects.get(email=email)
+                if check_password(password, admin.password):
+                    request.session['user_id'] = admin.id
+                    request.session['user_type'] = 'admin'
+                    request.session['user_name'] = admin.name
+                    messages.success(request, f'Welcome back, {admin.name}!')
+                    return redirect('admin_dashboard')
+                else:
+                    messages.error(request, 'Invalid email or password')
+            except Admins.DoesNotExist:
+                messages.error(request, 'Invalid email or password')
+    else:
+        form = AdminLoginForm()
+
+    return render(request, 'admin/admin_login.html', {'form': form})

@@ -1,0 +1,22 @@
+{% extends "home/base.html" %}
+
+{% block title %}Admin Homepage{% endblock %}
+
+{% block content %}
+<section class="account-type-section">
+    <div class="account-type-card">
+        <h1>Admin Dashboard</h1>
+        <p>Choose an option</p>
+        <div class="account-type-buttons">
+            <a href="" class="account-type-option">
+                <h2>View Site Analytics</h2>
+                <div class="account-icon">🌾</div>
+            </a>
+            <a href="{% url 'create_admin_account' %}" class="account-type-option">
+                <h2>Create new admin account</h2>
+                <div class="account-icon">👤</div>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

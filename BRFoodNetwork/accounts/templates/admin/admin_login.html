@@ -1,0 +1,29 @@
+{% extends "home/base.html" %}
+
+{% block title %}Admin Login{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+        <h1>Admin Log In</h1>
+        <p>Log in to your admin account</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary btn-lg">Log In</button>
+        </form>
+        
+        <p class="auth-link">Are you a customer? <a href="{% url 'customer_login' %}">Customer Log In</a></p>
+        <p class="auth-link">Are you a producer? <a href="{% url 'producer_login' %}">Producer Log In</a></p>
+    </div>
+</section>
+{% endblock %}
