@@ -22,7 +22,8 @@ def _get_customer_cart(user_id):
 def cart_detail(request):
     user_id = request.session.get("user_id")
     user_type = request.session.get("user_type", "customer")
-# so logged in customers can see their basket
+
+    # so logged in customers can see their basket
     if not user_id or user_type != "customer":
         return redirect("welcome")
 
@@ -31,13 +32,29 @@ def cart_detail(request):
         request.session.flush()
         return redirect("welcome")
 
-    items = cart.items.select_related("product").all()
+    items = cart.items.select_related("product", "product__producer").all()
 
     total = Decimal("0.00")
+    producer_groups = {}
+
     for item in items:
         total += item.product.price * item.quantity
 
-    return render(request, "cart/detail.html", {"items": items, "total": total})
+        producer = item.product.producer
+
+        if producer.id not in producer_groups:
+            producer_groups[producer.id] = {
+                "producer": producer,
+                "items": [],
+            }
+
+        producer_groups[producer.id]["items"].append(item)
+
+    return render(request, "cart/detail.html", {
+        "items": items,
+        "producer_groups": producer_groups.values(),
+        "total": total,
+    })
 
 
 @require_http_methods(["POST"])

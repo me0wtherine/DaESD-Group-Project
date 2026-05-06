@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=5">
 </head>
 <body>
-  <input type="hidden" name"csrfmiddlewaretoken" value="{{ csrf_token }}">
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
@@ -41,9 +41,6 @@
                         <div class="user-dropdown" id="userDropdown">
                             {% if user_type == 'producer' %}
                                 <a href="{% url 'producer_dashboard' %}" class="dropdown-item">Dashboard</a>
-                            {% endif %}
-                            {% if user_type == 'customer' %}
-                                <a href="{% url 'order_history' %}" class="dropdown-item">Order History</a>
                             {% endif %}
                             {% if user_type == 'admin' %}
                                 <a href="{% url 'admin_dashboard' %}" class="dropdown-item">Admin Dashboard</a>
@@ -149,22 +146,26 @@
         <button onclick="toggleNotifications()" class="close-notifications">✕</button>
     </div>
     <div class="notifications-body">
-        {% if notifications %}
-            {% for notification in notifications %}
-                <div class="notification-item">
-                    <p>{{ notification.message }}</p>
-                    <small>{{ notification.created_at|date:"M d, Y H:i" }}</small>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No notifications yet.</p>
-        {% endif %}
-    </div>
     {% if notifications %}
-        <div class="notifications-footer">
-            <a href="{% url 'messages:notifications' %}" class="btn btn-outline" style="width: 100%;">View All Notifications</a>
-        </div>
+        {% for notification in notifications %}
+            <a href="{% url 'producer_orders' %}" class="notification-item notification-link">
+                <strong>{{ notification.title }}</strong>
+                <p>{{ notification.message }}</p>
+                <small>{{ notification.created_at|date:"M d, Y H:i" }}</small>
+            </a>
+        {% endfor %}
+    {% else %}
+        <p>No notifications yet.</p>
     {% endif %}
+</div>
+
+{% if notifications %}
+    <div class="notifications-footer">
+        <a href="{% url 'producer_orders' %}" class="btn btn-outline" style="width: 100%;">
+            View Orders
+        </a>
+    </div>
+{% endif %}
 </div>
 
     <!-- Footer -->

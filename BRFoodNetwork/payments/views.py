@@ -15,6 +15,7 @@ from accounts.geocoding import haversine
 from cart.models import Cart
 from orders.models import Orders, OrderItem
 from payments.models import Payments, WeeklyPayment
+from notifications.models import Notification
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 COMMISSION_RATE = Decimal('0.05')
@@ -245,6 +246,13 @@ def payment_success(request):
             quantity=item.quantity,
             price=item.product.price,
         )
+
+
+        Notification.objects.create(
+            producer=item.product.producer,
+            title="New order recieved",
+            message=f"Order #{order.id} includes {item.quantity} x {item.product.name}."
+        ) 
         producer = item.product.producer
         item_total = item.product.price * item.quantity
         if producer.id not in producer_totals:

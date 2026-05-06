@@ -183,6 +183,26 @@
   .continue-shopping-btn:hover {
     background-color: #2980b9;
   }
+
+  .producer-cart-section {
+    background: #dcdcdc;
+    border: 1px solid #bdbdbd;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    padding: 12px;
+}
+
+.producer-cart-name {
+    background: #c4c4c4;
+    padding: 14px 18px;
+    margin: -12px -12px 12px -12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1b5e20;
+    border-bottom: 1px solid #aaaaaa;
+}
+
 </style>
 
 <div class="basket-container">
@@ -190,7 +210,11 @@
     <h1>Your Basket</h1>
   </div>
 
-  {% if items %}
+{% if items %}
+  {% for group in producer_groups %}
+  <div class="producer-cart-section">
+    <h2 class="producer-cart-name">{{ group.producer.business_name }}</h2>
+
     <table class="basket-items-table">
       <thead>
         <tr>
@@ -201,14 +225,17 @@
           <th></th>
         </tr>
       </thead>
+
       <tbody>
-        {% for item in items %}
+        {% for item in group.items %}
           <tr>
             <td>
               <div class="product-name">{{ item.product.name }}</div>
-              <div class="product-farm">{{ item.product.producer.business_name }} • {{ item.product.unit }}</div>
+              <div class="product-farm">{{ item.product.unit }}</div>
             </td>
+
             <td class="price">£{{ item.product.price }}</td>
+
             <td>
               <form method="POST" action="{% url 'cart:update' item.id %}" style="display: flex; gap: 8px;">
                 {% csrf_token %}
@@ -216,7 +243,9 @@
                 <button type="submit" class="quantity-btn">Update</button>
               </form>
             </td>
+
             <td class="item-total">£{% widthratio item.product.price 1 item.quantity %}</td>
+
             <td>
               <form method="POST" action="{% url 'cart:remove' item.id %}" style="display: inline;">
                 {% csrf_token %}
@@ -227,6 +256,8 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+{% endfor %}
 
     <div class="basket-summary">
       <div class="summary-row">
