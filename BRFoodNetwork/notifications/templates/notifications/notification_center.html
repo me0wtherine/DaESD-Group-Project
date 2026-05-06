@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - BR Food Network{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>Notification Center</h1>
+            <hr>
+
+            {% if notifications %}
+                <div class="list-group">
+                    {% for notification in notifications %}
+                        <div class="list-group-item {% if not notification.is_read %}alert-info{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        {% if not notification.is_read %}
+                                            <span class="badge badge-primary">New</span>
+                                        {% endif %}
+                                        Order Notification
+                                    </h6>
+                                    <p class="mb-1">{{ notification.message }}</p>
+                                    <small class="text-muted">{{ notification.created_at|date:"M d, Y \a\t H:i" }}</small>
+                                </div>
+                                {% if not notification.is_read %}
+                                    <form method="POST" action="{% url 'messages:mark_read' notification.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Mark as Read</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p>You have no notifications yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .alert-info {
+        background-color: #e7f3ff;
+        border-left: 4px solid #2196F3;
+    }
+    
+    .list-group-item {
+        border: 1px solid #ddd;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        padding: 15px;
+    }
+    
+    .list-group-item.alert-info {
+        background-color: #e7f3ff;
+    }
+</style>
+{% endblock %}

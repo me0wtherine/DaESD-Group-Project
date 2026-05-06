@@ -13,6 +13,7 @@ urlpatterns = [
     path('producer/', include('producers.urls')),
     path('cart/', include(('cart.urls', 'cart'), namespace='cart')),
     path('payments/', include(('payments.urls', 'payments'), namespace='payments')),
+    path('', include(('notifications.urls', 'messages'))),
 ]
 
 if settings.DEBUG:

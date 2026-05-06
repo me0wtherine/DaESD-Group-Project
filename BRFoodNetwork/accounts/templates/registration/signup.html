@@ -8,14 +8,6 @@
         <h1>Customer Sign Up</h1>
         <p>Create your account to shop local produce</p>
         
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-        
         <form method="post" class="auth-form">
             {% csrf_token %}
             {{ form.as_p }}

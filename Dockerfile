@@ -15,4 +15,6 @@ COPY BRFoodNetwork/ .
 
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+RUN chmod +x /app/manage.py
+
+CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]

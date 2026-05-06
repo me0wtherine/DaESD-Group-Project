@@ -37,113 +37,130 @@
         </aside>
 
         <div class="manage-main">
+            <div class="orders-filters">
+                <div class="filter-group">
+                    <label>Filter by Status:</label>
+                    <select id="statusFilter" onchange="filterOrdersByStatus(this.value)">
+                        <option value="">All</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="ready">Ready</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
 
             {% if order_items_with_miles %}
                 {% for entry in order_items_with_miles %}
                 <div class="order-card">
-                    <div class="order-header">
-                        <h2 class="order-number">Order {{ entry.item.order.id|stringformat:"05d" }}</h2>
-
-                        {% if entry.item.order.is_recurring %}
-                        <span class="recurring-badge">Recurring Order</span>
-                        {% endif %}
+                    <div class="order-card-header" onclick="toggleOrderDetails(this)">
+                        <div class="order-card-summary">
+                            <h2 class="order-number">Order {{ entry.item.order.id|stringformat:"05d" }}</h2>
+                            <span class="order-customer">{{ entry.item.order.user.name }}</span>
+                            <span class="status-badge status-{{ entry.item.order.order_status }}">
+                                {{ entry.item.order.get_order_status_display }}
+                            </span>
+                        </div>
+                        <button type="button" class="order-expand-btn">▼</button>
                     </div>
 
-                    <div class="order-details-grid">
-                        <div class="order-left">
-                            <div class="order-field">
-                                <label class="order-label">Customer Name:</label>
-                                <p class="order-value">{{ entry.item.order.user.name }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Customer Contact:</label>
-                                <p class="order-value">{{ entry.item.order.user.phone_number }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Delivery Address:</label>
-                                <p class="order-value">{{ entry.item.order.delivery_address }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Pickup or Delivery:</label>
-                                <p class="order-value">{{ entry.item.order.fulfillment_type|title }}</p>
-                            </div>
-
-                            {% if entry.item.order.is_recurring %}
-                            <div class="order-field">
-                                <label class="order-label">Recurring</label>
-                                <p class="order-value">
-                                    {{ entry.item.order.recurring_frequency|title }}
-                                    {% if entry.item.order.recurring_start_date %}
-                                    from {{ entry.item.order.recurring_start_date|date:"d/m/Y" }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="order-right">
-                            <div class="order-field">
-                                <label class="order-label">Order Date:</label>
-                                <p class="order-value">{{ entry.item.order.order_date|date:"d/m/Y" }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Delivery Date:</label>
-                                <p class="order-value">{{ entry.item.order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
-                            </div>
-                            <div class="order-field">
-                                <label class="order-label">Status:</label>
-                                <div class="status-field">
-                                    <span class="status-badge status-{{ entry.item.order.order_status }}">
-                                        {{ entry.item.order.get_order_status_display }}
-                                    </span>
-                                    <button type="button" class="status-edit-btn" onclick="toggleStatusForm(this)" title="Edit status">✏️</button>
+                    <div class="order-details" style="display: none;">
+                        <!-- All the existing order details here -->
+                        <div class="order-details-grid">
+                            <div class="order-left">
+                                <div class="order-field">
+                                    <label class="order-label">Customer Name:</label>
+                                    <p class="order-value">{{ entry.item.order.user.name }}</p>
                                 </div>
-                                <form method="post" action="{% url 'update_order_status' entry.item.order.id %}" class="status-form" style="display:none; margin-top:8px;">
-                                    {% csrf_token %}
-                                    <select name="order_status" class="status-select">
-                                        <option value="ready" {% if entry.item.order.order_status == 'ready' %}selected{% endif %}>Ready</option>
-                                        <option value="confirmed" {% if entry.item.order.order_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                                        <option value="cancelled" {% if entry.item.order.order_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-                                    </select>
-                                    <button type="submit" class="status-save-btn">Save</button>
-                                </form>
+                                <div class="order-field">
+                                    <label class="order-label">Customer Contact:</label>
+                                    <p class="order-value">{{ entry.item.order.user.phone_number }}</p>
+                                </div>
+                                <div class="order-field">
+                                    <label class="order-label">Delivery Address:</label>
+                                    <p class="order-value">{{ entry.item.order.delivery_address }}</p>
+                                </div>
+                                <div class="order-field">
+                                    <label class="order-label">Pickup or Delivery:</label>
+                                    <p class="order-value">{{ entry.item.order.fulfillment_type|title }}</p>
+                                </div>
+
+                                {% if entry.item.order.is_recurring %}
+                                <div class="order-field">
+                                    <label class="order-label">Recurring</label>
+                                    <p class="order-value">
+                                        {{ entry.item.order.recurring_frequency|title }}
+                                        {% if entry.item.order.recurring_start_date %}
+                                        from {{ entry.item.order.recurring_start_date|date:"d/m/Y" }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="order-right">
+                                <div class="order-field">
+                                    <label class="order-label">Order Date:</label>
+                                    <p class="order-value">{{ entry.item.order.order_date|date:"d/m/Y" }}</p>
+                                </div>
+                                <div class="order-field">
+                                    <label class="order-label">Delivery Date:</label>
+                                    <p class="order-value">{{ entry.item.order.delivery_date|date:"d/m/Y"|default:"To be confirmed" }}</p>
+                                </div>
+                                <div class="order-field">
+                                    <label class="order-label">Status:</label>
+                                    <div class="status-field">
+                                        <span class="status-badge status-{{ entry.item.order.order_status }}">
+                                            {{ entry.item.order.get_order_status_display }}
+                                        </span>
+                                        <button type="button" class="status-edit-btn" onclick="toggleStatusForm(this)" title="Edit status">✏️</button>
+                                    </div>
+                                    <form method="post" action="{% url 'update_order_status' entry.item.order.id %}" class="status-form" style="display:none; margin-top:8px;">
+                                        {% csrf_token %}
+                                        <select name="order_status" class="status-select">
+                                            <option value="ready" {% if entry.item.order.order_status == 'ready' %}selected{% endif %}>Ready</option>
+                                            <option value="confirmed" {% if entry.item.order.order_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                            <option value="cancelled" {% if entry.item.order.order_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                        </select>
+                                        <button type="submit" class="status-save-btn">Save</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="order-summary">
-                        <p class="summary-text">
-                            Items Ordered: <strong>{{ entry.item.quantity }}</strong> |
-                            Item Total: <strong>£{{ entry.item.price }}</strong>
-                            {% if entry.food_miles != None %}
+                        <div class="order-summary">
+                            <p class="summary-text">
+                                Items Ordered: <strong>{{ entry.item.quantity }}</strong> |
+                                Item Total: <strong>£{{ entry.item.price }}</strong>
+                                {% if entry.food_miles != None %}
                                 | Food Miles: <strong class="food-miles-highlight">{{ entry.food_miles }} mi</strong>
-                            {% endif %}
-                        </p>
-                    </div>
+                                {% endif %}
+                            </p>
+                        </div>
 
-                    {% if entry.food_miles != None %}
-                    <div class="food-miles-bar">
-                        🌿 This order travels <strong>{{ entry.food_miles }} miles</strong> from your farm to the customer
-                    </div>
-                    {% endif %}
+                        {% if entry.food_miles != None %}
+                        <div class="food-miles-bar">
+                            🌿 This order travels <strong>{{ entry.food_miles }} miles</strong> from your farm to the customer
+                        </div>
+                        {% endif %}
 
-                    <div class="order-items-table">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Quantity</th>
-                                    <th>Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{{ entry.item.product.name }}</td>
-                                    <td>{{ entry.item.quantity }}</td>
-                                    <td>£{{ entry.item.price }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="order-items-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ entry.item.product.name }}</td>
+                                        <td>{{ entry.item.quantity }}</td>
+                                        <td>£{{ entry.item.price }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -160,18 +177,65 @@
 </div>
 
 <style>
-    .order-card {
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px;
         background: #f9f9f9;
         border: 1px solid #e0e0e0;
         border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 24px;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-bottom: 8px;
     }
 
-    .order-header {
+    .order-card-header:hover {
+        background: #f0f0f0;
+    }
+
+    .order-card-summary {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex: 1;
+    }
+
+    .order-number {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .order-customer {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .order-expand-btn {
+        background: none;
+        border: none;
+        font-size: 12px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        padding: 0 8px;
+    }
+
+    .order-expand-btn.open {
+        transform: rotate(180deg);
+    }
+
+    .order-details {
+        padding: 8px;
+        border: 1px solid #e0e0e0;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .order-card-header {
         border-bottom: 2px solid #ddd;
         padding-bottom: 16px;
-        margin-bottom: 20px;
     }
 
     .order-number {
@@ -224,24 +288,9 @@
         text-transform: uppercase;
     }
 
-    .status-badge.status-pending {
-        background-color: #fff3cd;
-        color: #856404;
-    }
-
     .status-badge.status-confirmed {
         background-color: #d1ecf1;
         color: #0c5460;
-    }
-
-    .status-badge.status-dispatched {
-        background-color: #cfe2ff;
-        color: #084298;
-    }
-
-    .status-badge.status-delivered {
-        background-color: #d1e7dd;
-        color: #0f5132;
     }
 
     .status-badge.status-ready {
@@ -385,6 +434,39 @@
         font-weight: 700;
         text-transform: uppercase;
     }
+
+    .orders-filters {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding: 16px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        width: fit-content;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #333;
+        white-space: nowrap;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 150px;
+    }
 </style>
 
 <script>
@@ -392,6 +474,26 @@ function toggleStatusForm(btn) {
     var field = btn.closest('.order-field');
     var form = field.querySelector('.status-form');
     form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+}
+function toggleOrderDetails(header) {
+    const card = header.closest('.order-card');
+    const details = card.querySelector('.order-details');
+    const btn = header.querySelector('.order-expand-btn');
+    
+    details.style.display = details.style.display === 'none' ? 'block' : 'none';
+    btn.classList.toggle('open');
+}
+function filterOrdersByStatus(status) {
+    const cards = document.querySelectorAll('.order-card');
+    cards.forEach(card => {
+        if (!status) {
+            card.style.display = 'block';
+        } else {
+            const badge = card.querySelector('.status-badge');
+            const orderStatus = badge.classList[1].replace('status-', '');
+            card.style.display = orderStatus === status ? 'block' : 'none';
+        }
+    });
 }
 </script>
 

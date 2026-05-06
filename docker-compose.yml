@@ -14,7 +14,7 @@ services:
       STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
       STRIPE_SECRET_KEY: sk_test_placeholder
       STRIPE_WEBHOOK_SECRET: whsec_placeholder
-      GOOGLE_MAPS_API_KEY: ""
+      GOOGLE_MAPS_API_KEY: "AIzaSyCMQ1FS49cotdaDuQH5QEchFlMZh9buHZE"
     depends_on:
       db:
         condition: service_healthy

@@ -8,14 +8,6 @@
         <h1>Admin Account Create</h1>
         <p>Create your admin account</p>
         
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-        
         <form method="post" class="auth-form">
             {% csrf_token %}
             {{ form.as_p }}

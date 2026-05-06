@@ -149,8 +149,22 @@
         <button onclick="toggleNotifications()" class="close-notifications">✕</button>
     </div>
     <div class="notifications-body">
-        <p>No notifications yet.</p>
+        {% if notifications %}
+            {% for notification in notifications %}
+                <div class="notification-item">
+                    <p>{{ notification.message }}</p>
+                    <small>{{ notification.created_at|date:"M d, Y H:i" }}</small>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No notifications yet.</p>
+        {% endif %}
     </div>
+    {% if notifications %}
+        <div class="notifications-footer">
+            <a href="{% url 'messages:notifications' %}" class="btn btn-outline" style="width: 100%;">View All Notifications</a>
+        </div>
+    {% endif %}
 </div>
 
     <!-- Footer -->
