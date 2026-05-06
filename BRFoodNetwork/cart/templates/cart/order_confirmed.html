@@ -237,16 +237,23 @@
       <span class="detail-label">Fulfillment Type:</span>
       <span class="detail-value">{{ order.get_fulfillment_type_display }}</span>
     </div>
-    <div class="detail-row">
-      <span class="detail-label">
-        {% if order.fulfillment_type == 'collection' %}
-          Collection Date:
-        {% else %}
-          Delivery Date:
-        {% endif %}
-      </span>
-      <span class="detail-value">{{ order.delivery_date|date:"d M Y" }}</span>
-    </div>
+    <div class="detail-row" style="display:block;">
+  <span class="detail-label">
+    {% if order.fulfillment_type == 'collection' %}
+      Collection Dates:
+    {% else %}
+      Delivery Dates:
+    {% endif %}
+  </span>
+  <div class="detail-value" style="margin-top:10px;">
+    {% for producer_id, delivery_date in producer_delivery_dates.items %}
+      <div style="margin-bottom:8px;">
+        Producer {{ producer_id }}:
+        {{ delivery_date }}
+      </div>
+    {% endfor %}
+  </div>
+</div>
     <div class="detail-row">
       <span class="detail-label">Delivery/Collection Address:</span>
       <span class="detail-value">{{ order.delivery_address }}</span>
