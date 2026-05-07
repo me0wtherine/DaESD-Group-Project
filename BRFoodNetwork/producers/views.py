@@ -288,6 +288,8 @@ def surplus_deals(request):
 @producer_required
 def producer_payouts(request):
     """Display weekly settlements and payouts for the logged-in producer"""
+    import csv
+    from django.http import HttpResponse
     from orders.models import Orders
     from datetime import datetime, timedelta, date
     from django.utils import timezone
@@ -343,7 +345,8 @@ def producer_payouts(request):
     tax_year_orders = Orders.objects.filter(
         order_date__date__gte=tax_year_start,
         items__product__producer=producer,
-        order_status='ready',
+    ).exclude(
+        order_status='cancelled',
     ).distinct()
 
     for order in tax_year_orders:
@@ -352,6 +355,69 @@ def producer_payouts(request):
         for item in producer_items:
             tax_year_total += float(item.price) * float(item.quantity) * 0.95
 
+    if request.GET.get('export') == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        filename = f"payment_report_{week_start}_to_{week_end}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+
+        # Header block
+        writer.writerow(['LocalHarvest Network — Producer Payment Report'])
+        writer.writerow([''])
+        writer.writerow(['Producer:', producer.business_name])
+        writer.writerow(['Settlement Week:', f"{week_start.strftime('%d %b %Y')} – {week_end.strftime('%d %b %Y')}"])
+        writer.writerow(['Report Generated:', datetime.now().strftime('%d %b %Y %H:%M')])
+        writer.writerow(['Tax Year:', f"{tax_year_label}/{tax_year_label + 1}"])
+        writer.writerow([''])
+
+        # Payment summary
+        writer.writerow(['PAYMENT SUMMARY'])
+        writer.writerow(['Total Orders Value', f"£{total_orders_value:.2f}"])
+        writer.writerow(['Network Commission (5%)', f"-£{total_commission:.2f}"])
+        writer.writerow(['Your Payment This Week (95%)', f"£{total_payout:.2f}"])
+        writer.writerow(['Tax Year Running Total', f"£{tax_year_total:.2f}"])
+        writer.writerow([''])
+
+        # Order breakdown
+        writer.writerow(['ORDER BREAKDOWN'])
+        writer.writerow(['Order No.', 'Date', 'Customer', 'Items', 'Order Value', 'Commission (5%)', 'Your Payment (95%)', 'Status'])
+
+        for s in settlements:
+            order = s['order']
+            # Anonymise customer name to first name + initial
+            customer = order.user.name if order.user else 'Unknown'
+            parts = customer.split()
+            anon_name = f"{parts[0]} {parts[1][0]}." if len(parts) > 1 else parts[0]
+
+            # Get items belonging to this producer
+            items_list = ', '.join(
+                f"{item.product.name} x{item.quantity}"
+                for item in order.items.filter(product__producer=producer)
+            )
+
+            status = 'Processed' if s['status'] == 'processed' else 'Pending Bank Transfer'
+
+            writer.writerow([
+                f"#{order.id:05d}",
+                order.order_date.strftime('%d/%m/%Y'),
+                anon_name,
+                items_list,
+                f"£{s['order_value']:.2f}",
+                f"-£{s['commission']:.2f}",
+                f"£{s['payout']:.2f}",
+                status,
+            ])
+
+        # Totals row
+        writer.writerow(['', '', '', 'TOTAL', f"£{total_orders_value:.2f}", f"-£{total_commission:.2f}", f"£{total_payout:.2f}", ''])
+        writer.writerow([''])
+
+        # Compliance footer
+        writer.writerow([f"Report Reference: RPT-{tax_year_label}{tax_year_label+1}-{producer.id}-W{week_start.strftime('%W')}"])
+
+        return response
+    
     return render(request, 'producers/producer_payouts.html', {
         'producer': producer,
         'settlements': settlements,
