@@ -47,8 +47,9 @@
             <a href="?category=bakery" class="btn btn-outline {% if selected_category == 'bakery' %}active{% endif %}">Bakery</a>
             <a href="?category=preserves" class="btn btn-outline {% if selected_category == 'preserves' %}active{% endif %}">Preserves</a>
             <a href="?category=seasonal_speciality" class="btn btn-outline {% if selected_category == 'seasonal_speciality' %}active{% endif %}">Seasonal Specialties</a>
-            <a href="?organic=true" class="btn btn-outline {% if selected_organic %}active{% endif %}">Organic</a>
-            <a href="?" class="btn btn-outline {% if not selected_category and not selected_organic %}active{% endif %}">All Products</a>
+            <a href="?organic=true" class="btn btn-outline {% if organic %}active{% endif %}">Organic</a>
+            <a href="?surplus=true" class="btn btn-outline {% if surplus %}active{% endif %}">Surplus</a>
+            <a href="?" class="btn btn-outline {% if not selected_category and not organic and not surplus %}active{% endif %}">All Products</a>
         </div>
     </div>
 </section>
