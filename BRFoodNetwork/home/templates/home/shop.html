@@ -80,11 +80,12 @@
                         {% else %}
                             <p class="product-price">&pound;{{ item.price }}</p>
                         {% endif %}
-                        {% if item.allergens %}
-                            <p class="product-allergens">{{item.allergens}}</p>
-                        {% endif %}
+                        
                         {% if item.is_organic %}
                             <p class="product-organic-certification">Organic Certified</p>
+                        {% endif %}
+                        {% if item.allergens %}
+                            <p class="product-allergens"><strong>Allergens:</strong> {{ item.allergens }}</p>
                         {% endif %}
                         <form method="POST" action="{% url 'cart:add' item.id %}" style="display: flex; gap: 8px; align-items: center;">
                             {% csrf_token %}

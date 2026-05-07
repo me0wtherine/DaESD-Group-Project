@@ -6,7 +6,6 @@ from accounts.models import Producers, Accounts
 from orders.models import Orders
 
 
-
 def home(request):
     """Homepage with popular items and nearby producers."""
     # Get category filter from query parameters
@@ -64,11 +63,21 @@ def welcome(request):
     return render(request, 'home/welcome.html')
 
 def shop(request):
+    import ast
     """Shop page with product listing and filters."""
     # Get category filter from query parameters
     category = request.GET.get('category', '')
     search_query = request.GET.get('Search', '')
     allergens = request.GET.get('allergens', '')
+    
+    # Allergen labels for display
+    ALLERGEN_LABELS = {
+        'celery': 'Celery', 'gluten': 'Gluten', 'lupin': 'Lupin',
+        'crustaceans': 'Crustaceans', 'milk': 'Milk', 'sulphur_dioxide': 'Sulphur Dioxide',
+        'sesame': 'Sesame', 'molluscs': 'Molluscs', 'mustard': 'Mustard',
+        'nuts': 'Nuts', 'egg': 'Egg', 'fish': 'Fish',
+        'soybeans': 'Soybeans', 'peanuts': 'Peanuts',
+    }
     
     # Fetch products from database
     products = Products.objects.filter(is_available=True)
@@ -77,40 +86,36 @@ def shop(request):
         products = Products.objects.filter(category=category)
     
     if allergens:
-        products = Products.objects.filter(allergens__icontains=allergens)
-    
+        products = products.exclude(allergens__icontains=allergens)
+
     # Convert products to display format
     product_list = []
-    def _product_dict(product):
-        return {
+    for product in products:
+        if search_query and search_query.lower() not in product.name.lower():
+            continue
+        
+        # Parse allergens from string representation
+        allergen_display = ''
+        if product.allergens:
+            try:
+                allergen_list = ast.literal_eval(product.allergens) if isinstance(product.allergens, str) else product.allergens
+                allergen_display = ', '.join(ALLERGEN_LABELS.get(a, a) for a in allergen_list)
+            except (ValueError, SyntaxError):
+                allergen_display = product.allergens
+        
+        product_list.append({
             'id': product.id,
             'name': product.name,
             'farm': product.producer.business_name if product.producer else 'Unknown',
             'price': str(product.price),
             'category': product.category,
             'image': product.image.url if product.image else None,
-            'is_organic': product.is_organic if "Organic Certified" else None,
-            'allergens': product.allergens,
+            'is_organic': product.is_organic,
+            'allergens': allergen_display,
             'is_surplus': product.is_surplus,
             'surplus_price': str(product.surplus_price) if product.surplus_price else None,
             'best_before': product.best_before,
-        }
-
-    if search_query:
-        for product in products:
-            if search_query.lower() in product.name.lower():
-                product_list.append({
-                    'id': product.id,
-                    'name': product.name,
-                    'farm': product.producer.business_name if product.producer else 'Unknown',
-                    'price': str(product.price),
-                    'category': product.category,
-                    'image': product.image.url if product.image else None,
-                    'is_organic': product.is_organic if "Organic Certified" else None,
-                    'allergens': product.allergens,
-                })
-    else:
-        product_list = [_product_dict(p) for p in products]
+        })
 
 
     return render(request, 'home/shop.html', {

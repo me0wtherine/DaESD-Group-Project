@@ -21,7 +21,6 @@ ALLERGEN_CHOICES = [
     ('peanuts', 'Peanuts'),
 ]
 
-
 class StoreInfoForm(forms.ModelForm):
     """Form for producers to edit their store details"""
     class Meta:
@@ -81,3 +80,5 @@ class ProductForm(forms.ModelForm):
             'available_from': 'Available From',
             'available_to': 'Available To',
         }
+
+
