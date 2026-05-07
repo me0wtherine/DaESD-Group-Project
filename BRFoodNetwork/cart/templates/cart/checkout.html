@@ -206,29 +206,29 @@
       {% csrf_token %}
 
 
-    <div class="form-group">
-  <label class="checkbox-option">
-    <input type="checkbox" id="is_recurring" name="is_recurring" value="yes">
-    Make this a recurring order
+{%if customer.customer_type == "restaurant" %}
+ <div class="form-group">
+  <label class = "recurring">
+  <input type="checkbox" id="recurring" name="recurring" value="yes">
+  Recurring Order
   </label>
+  <div id="recurring-checkbox" style="display: none; margin-top: 10px;">
+  <label for="recurring_frequency"> How often?</label>
+  <select id="recurring_frequency" name ="recurring-frequency">
+  <option value="Weekly">Weekly</option>
+  <option value="2-weeks">Every 2 weeks</option>
+  <option value="Monthly">Monthly</option>
+</select>
 
-  <div id="recurring-options" style="display: none; margin-top: 10px;">
-    <label for="recurring_frequency">How often?</label>
-    <select id="recurring_frequency" name="recurring_frequency">
-      <option value="">Select Frequency</option>
-      <option value="weekly">Weekly</option>
-      <option value="fortnightly">Every 2 weeks</option>
-      <option value="monthly">Monthly</option>
-    </select>
+    <label for="start_date">Start date</label>
+    <input type="date" id="start_date" name="start_date">
 
-    <label for="recurring_start_date">Start Date</label>
-    <input 
-      type="date" 
-      id="recurring_start_date" 
-      name="recurring_start_date"
-    >
   </div>
-</div>
+ </div>
+ {% endif %}
+
+
+
 
       <div class="form-group">
         <label for="address">Address*</label>
@@ -356,6 +356,10 @@
       <span>£{{ total }}</span>
     </div>
 
+    {%if bulk_order %}
+    <p style="color: #916f08; font-weight: bold; background: #fcefc3; padding: 10px; border-radius: 6px"> BULK ORDER</p>
+    {% endif%}
+
     <div style="color: #999; font-size: 0.9em; line-height: 1.6;">
       <p><strong>Address & Postcode:</strong> Where your order will be delivered/collected</p>
       <p><strong>Fulfillment Type:</strong> Choose delivery or collection</p>
@@ -366,12 +370,14 @@
 </div>
 
 <script>
-  const recurringCheckbox = document.getElementById("is_recurring");
-  const recurringOptions = document.getElementById("recurring-options");
+ const recurringCheckbox = document.getElementById("recurring");
+const recurringOptions = document.getElementById("recurring-checkbox");
 
+if (recurringCheckbox && recurringOptions) {
   recurringCheckbox.addEventListener("change", function () {
     recurringOptions.style.display = this.checked ? "block" : "none";
   });
+}
 
   const sameDateCheckbox = document.getElementById("same_delivery_date");
   const commonDateBox = document.getElementById("common-date-box");

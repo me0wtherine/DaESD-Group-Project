@@ -12,6 +12,19 @@ class Accounts(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
+    CUSTOMER_TYPE_CHOICES = {
+        ("individual", "Individual"),
+        ("restaurant", "Restaurant"),
+        ("community_group", "Community Group"),
+    }
+
+    customer_type = models.CharField(
+        max_length=30,
+        choices=CUSTOMER_TYPE_CHOICES,
+        default="individual"
+
+    )
+
     class Meta:
         verbose_name_plural = 'Accounts'
 

@@ -92,7 +92,6 @@
                   step="1"
                   class="cart-qty-input"
                   data-item-id="{{ item.id }}"
-                  data-price="{{ item.price }}"
                   onchange="updateCartQuantity(this)"
                 >
               </div>
@@ -176,59 +175,42 @@
     </footer>
 
     <script>
-        function toggleUserDropdown() {
-            const dropdown = document.getElementById('userDropdown');
-            dropdown.classList.toggle('show');
-        }
+  function toggleUserDropdown() {
+    const dropdown = document.getElementById("userDropdown");
+    dropdown.classList.toggle("show");
+  }
 
-          // -------------------cart window----------------------------------
+  function toggleCart() {
+    const cart = document.getElementById("cartDrawer");
+    cart.classList.toggle("open");
+  }
 
-        function toggleCart() {
-        const cart = document.getElementById("cartDrawer");
-        cart.classList.toggle("open");
-        }
+  function toggleNotifications() {
+    const notifications = document.getElementById("notificationsDrawer");
+notifications.classList.toggle("open");
+  }
 
-        // -------------------notifications window----------------------------------
+  document.addEventListener("click", function(event) {
+    const userMenu = document.querySelector(".user-menu");
 
-        function toggleNotifications() {
-        const notifications = document.getElementById("notificationsDrawer");
-        notifications.classList.toggle("open");
-        }
+    if (userMenu && !userMenu.contains(event.target)) {
+      const dropdown = document.getElementById("userDropdown");
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const userMenu = document.querySelector('.user-menu');
-            if (userMenu && !userMenu.contains(event.target)) {
-                const dropdown = document.getElementById('userDropdown');
-                if (dropdown) {
-                    dropdown.classList.remove('show');
-                }
-            }
-        });
 
-        function getCSRFToken() {
-  return document.querySelector('[name=csrfmiddlewaretoken]').value;
-}
+    if (dropdown) {
+      dropdown.classList.remove("show");
+    }
 
-function updateCartQuantity(input) {
-  const itemId = input.dataset.itemId;
-  const quantity = parseInt(input.value);
-  const price = parseFloat(input.dataset.price);
-
-  const lineTotal = price * quantity;
-
-  document.getElementById(`line-total-${itemId}`).innerText = `£${lineTotal.toFixed(2)}`;
-
-  let newCartTotal = 0;
-
-  document.querySelectorAll(".cart-qty-input").forEach(function(qtyInput) {
-    const qty = parseInt(qtyInput.value);
-    const itemPrice = parseFloat(qtyInput.dataset.price);
-
-    newCartTotal += qty * itemPrice;
+    }
   });
 
-  document.getElementById("cart-total").innerText = `£${newCartTotal.toFixed(2)}`;
+  function getCSRFToken(){
+    return document.querySelector("[name=csrfmiddlewaretoken]").value;
+  }
+
+  function updateCartQuantity(input) {
+    const itemId = input.dataset.itemId;
+    const quantity = input.value;
 
   fetch(`/cart/update/${itemId}/`, {
     method: "POST",
@@ -237,8 +219,41 @@ function updateCartQuantity(input) {
       "X-CSRFToken": getCSRFToken()
     },
     body: `quantity=${quantity}`
+  })
+  .then(function(response) {
+    return response.json();
+  })
+  .then(function(data){
+    input.value = data.quantity;
+    if (data.message) {
+      alert(data.message)
+    }
+
+    const sidebarLineTotal = document.getElementById("line-total-" + itemId);
+    if(sidebarLineTotal) {
+      sidebarLineTotal.innerText = "£" + data.line_total;
+    }
+    const sidebarTotal = document.getElementById("cart-total");
+
+    if (sidebarTotal) {
+      sidebarTotal.innerText = "£" + data.cart_total;
+    }
+    
+    const cartPageLineTotal = document.querySelector(".cart-page-line-total-" + itemId);
+    if (cartPageLineTotal) {
+      cartPageLineTotal.innerText = "£" + data.line_total;
+    }
+    const cartPageTotal = document.getElementById("cart-page-total");
+    if (cartPageTotal) {
+      cartPageTotal.innerText = "£" + data.cart_total;
+    }
+    const cartPageTotalFinal = document.getElementById("cart-page-total-final");
+    if (cartPageTotalFinal) {
+      cartPageTotalFinal.innerText="£" + data.cart_total;
+    }
   });
 }
+
     </script>
 </body>
 </html>

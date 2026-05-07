@@ -79,6 +79,19 @@ def add_to_cart(request, product_id):
     except (TypeError, ValueError):
         quantity = 1
 
+ #decided to limit the 'individual' account to 10 as they are cant bulk buy
+    customer = Accounts.objects.filter(id=user_id).first()
+    message = ""
+
+    if customer.customer_type == "individual" and quantity > 10: 
+        quantity = 10
+        message = "Individual customers cannot order more than 10 of the same item"
+    elif quantity >= 15:
+        message = "this order will be considered a bulk buy"
+        
+
+
+
     cart_item, created = CartItem.objects.get_or_create(
         cart=cart,
         product=product,
@@ -87,7 +100,12 @@ def add_to_cart(request, product_id):
 
     if not created:
         cart_item.quantity += quantity
-        cart_item.save()
+
+        if customer.customer_type == "individual" and cart_item.quantity > 10:
+
+            cart_item.quantity = 10
+    
+    cart_item.save()
 
     # send user back to the page they clicked from
     return redirect(request.META.get("HTTP_REFERER", "cart:detail"))
@@ -98,6 +116,7 @@ def update_quantity(request, item_id):
     """Update quantity of an item already in the cart."""
     user_id = request.session.get("user_id")
     user_type = request.session.get("user_type", "customer")
+    message = ""
 
     if not user_id or user_type != "customer":
         return redirect("welcome")
@@ -115,10 +134,33 @@ def update_quantity(request, item_id):
     except (TypeError, ValueError):
         quantity = 1
 
+
+    customer = Accounts.objects.filter(id=user_id).first()
+
+    if customer.customer_type == "individual" and quantity > 10: 
+        quantity = 10
+        message = "Individual customers cannot order more than 10 of the same item"
+    elif quantity >= 15:
+        message = "this order will be considered a bulk buy"
+
     item.quantity = quantity
     item.save()
+    
+    cart_total = Decimal("0.00")
+    for cart_item in cart.items.select_related("product").all():
+        cart_total += cart_item.product.price * cart_item.quantity
 
-    return JsonResponse({"status": "ok"})
+    line_total = item.product.price * item.quantity
+
+    return JsonResponse(
+        {
+        "status": "ok",
+        "quantity": item.quantity,
+        "line_total": f"{line_total:.2f}",
+        "cart_total": f"{cart_total:.2f}",
+        "message": message,
+    }
+    )
 
 
 @require_http_methods(["POST"])
@@ -161,6 +203,11 @@ def checkout(request):
     items = cart.items.select_related("product", "product__producer").all()
     if not items.exists():
         return redirect("cart:detail")
+    
+    bulk_order = False
+    for item in items:
+        if item.quantity >=15:
+            bulk_order = True
 
     producer_groups = {}
     total = Decimal("0.00")
@@ -191,9 +238,10 @@ def checkout(request):
         same_delivery_date = request.POST.get("same_delivery_date") == "yes"
         common_delivery_date = request.POST.get("common_delivery_date", "")
 
-        is_recurring = request.POST.get("is_recurring") == "yes"
+        recurring = request.POST.get("recurring") == "yes"
         recurring_frequency = request.POST.get("recurring_frequency", "")
         recurring_start_date = request.POST.get("recurring_start_date", "")
+
 
         if not address or not postcode:
             return render(request, "cart/checkout.html", {
@@ -202,6 +250,7 @@ def checkout(request):
                 "total": total,
                 "customer": customer,
                 "min_date": min_date,
+                "bulk_order": bulk_order,
                 "error": "Address and postcode are required.",
             })
 
@@ -260,9 +309,10 @@ def checkout(request):
             "same_delivery_date": same_delivery_date,
             "common_delivery_date": common_delivery_date,
             "producer_delivery_dates": producer_delivery_dates,
-            "is_recurring": is_recurring,
+            "recurring": recurring,
             "recurring_frequency": recurring_frequency,
             "recurring_start_date": recurring_start_date,
+            "bulk_order": bulk_order,
         }
 
         return redirect("payments:payment_page")
@@ -273,4 +323,5 @@ def checkout(request):
         "total": total,
         "customer": customer,
         "min_date": min_date,
+        "bulk_order": bulk_order,
     })
