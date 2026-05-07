@@ -3,6 +3,7 @@ from django.conf import settings
 import math
 from products.models import Products, Reviews
 from accounts.models import Producers, Accounts
+from orders.models import Orders
 
 
 
@@ -157,8 +158,12 @@ def product_detail(request, product_id):
                 'comment': review.comment,
                 'created_at': review.created_at,
             }
-
-
+    if user_review is None:
+        user_can_review = Orders.objects.filter(
+        user__id=user_id,
+        order_status='confirmed',
+        items__product__id=product_id,
+    ).exists()
 
     return render(request, 'home/product_detail.html', {
         'product': product,
@@ -166,6 +171,7 @@ def product_detail(request, product_id):
         'distance': distance,
         'reviews': review_list,
         'user_review': user_review,
+        'can_review': user_can_review,
     })
 
 
