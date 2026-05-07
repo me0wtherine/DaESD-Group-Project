@@ -15,7 +15,7 @@ services:
       # Stripe publishable key stays here – it is safe to expose to the browser
       STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
       # Google Maps key stays here – Django injects it into the producers.html template
-      GOOGLE_MAPS_API_KEY: "AIzaSyCMQ1FS49cotdaDuQH5QEchFlMZh9buHZE"
+      GOOGLE_MAPS_API_KEY: ""
       # Point the web container at the API gateway for server-side external calls
       API_GATEWAY_URL: "http://api:8001"
     depends_on:
