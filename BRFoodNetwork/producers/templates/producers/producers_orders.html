@@ -58,7 +58,11 @@
                             <span class="order-customer">{{ entry.item.order.user.name }}</span>
                             <span class="status-badge status-{{ entry.item.order.order_status }}">
                                 {{ entry.item.order.get_order_status_display }}
-                            </span>
+                                </span>
+                            {% if entry.item.order.bulk_order %}
+                            <span class="bulk-badge">Bulk Order</span>
+                            {% endif %}
+                            
                         </div>
                         <button type="button" class="order-expand-btn">▼</button>
                     </div>
@@ -84,7 +88,7 @@
                                     <p class="order-value">{{ entry.item.order.fulfillment_type|title }}</p>
                                 </div>
 
-                                {% if entry.item.order.is_recurring %}
+                                {% if entry.item.order.recurring %}
                                 <div class="order-field">
                                     <label class="order-label">Recurring</label>
                                     <p class="order-value">
@@ -112,6 +116,8 @@
                                         <span class="status-badge status-{{ entry.item.order.order_status }}">
                                             {{ entry.item.order.get_order_status_display }}
                                         </span>
+                                        {%if entry.item.order.bulk_order %}
+                                        <span class="bulk-badge">Bulk Order</span> {%endif%}
                                         <button type="button" class="status-edit-btn" onclick="toggleStatusForm(this)" title="Edit status">✏️</button>
                                     </div>
                                     <form method="post" action="{% url 'update_order_status' entry.item.order.id %}" class="status-form" style="display:none; margin-top:8px;">
@@ -466,6 +472,17 @@
         border-radius: 4px;
         font-size: 14px;
         min-width: 150px;
+    }
+
+    .bulk-badge {
+        background: #fcf1ca;
+        color: #765a05;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+
     }
 </style>
 

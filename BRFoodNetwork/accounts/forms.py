@@ -36,7 +36,7 @@ class SignupForm(forms.ModelForm):
 
     class Meta:
         model = Accounts
-        fields = ['name', 'email', 'phone_number', 'address', 'postal_code']
+        fields = ['name', 'email', 'phone_number', 'address', 'postal_code', 'customer_type']
 
     def clean_phone_number(self):
         phone = self.cleaned_data.get('phone_number')

@@ -58,7 +58,7 @@
             </div>
             </div>
 
-          {% if order.is_recurring %}
+          {% if order.recurring %}
             <div class="recurring-info">
               Recurring order: {{ order.recurring_frequency|title }}
               {% if order.recurring_start_date %}

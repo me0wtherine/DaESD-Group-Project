@@ -237,14 +237,22 @@
             <td class="price">£{{ item.product.price }}</td>
 
             <td>
-              <form method="POST" action="{% url 'cart:update' item.id %}" style="display: flex; gap: 8px;">
-                {% csrf_token %}
-                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="quantity-input">
-                <button type="submit" class="quantity-btn">Update</button>
-              </form>
+              <div style="display: flex; gap: 8px;">
+                <input 
+                type="number"
+                value="{{ item.quantity }}"
+                min="1"
+                step="1"
+                class="quantity-input"
+                data-item-id="{{ item.id }}"
+                >
+                <button type="button" class="quantity=btn "onclick="updateCartQuantity(this.previousElementSibling)">Update</button>
+              </div>
             </td>
 
-            <td class="item-total">£{% widthratio item.product.price 1 item.quantity %}</td>
+            <td class="item-total cart-page-line-total-{{ item.id }}">
+              
+              £{% widthratio item.product.price 1 item.quantity %}</td>
 
             <td>
               <form method="POST" action="{% url 'cart:remove' item.id %}" style="display: inline;">
@@ -262,7 +270,7 @@
     <div class="basket-summary">
       <div class="summary-row">
         <span class="summary-label">Subtotal:</span>
-        <span class="summary-value">£{{ total }}</span>
+        <span class="summary-value" id="cart-page-total">£{{ total }}</span>
       </div>
       <div class="summary-row">
         <span class="summary-label">Shipping:</span>
@@ -270,7 +278,7 @@
       </div>
       <div class="summary-row total-row">
         <span class="summary-label">Total:</span>
-        <span class="summary-value">£{{ total }}</span>
+        <span class="summary-value" id="cart-page-total-final">£{{ total }}</span>
       </div>
       <a href="{% url 'cart:checkout' %}" style="display: block; background-color: #2e7d32; color: white; padding: 12px; border-radius: 4px; text-align: center; text-decoration: none; margin-top: 20px; font-weight: 600; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1b5e20'" onmouseout="this.style.backgroundColor='#2e7d32'">Proceed to Checkout</a>
     </div>

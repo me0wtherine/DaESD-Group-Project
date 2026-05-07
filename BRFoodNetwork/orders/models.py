@@ -31,9 +31,11 @@ class Orders(models.Model):
     settlement_status = models.CharField(max_length=20, choices=SETTLEMENT_STATUS_CHOICES, default='pending')
     settled_date = models.DateTimeField(blank=True, null=True)
 
-    is_recurring = models.BooleanField(default=False)
+    recurring = models.BooleanField(default=False)
     recurring_frequency = models.CharField(max_length=20, blank=True, default="")
     recurring_start_date = models.DateField(blank=True, null=True)
+
+    bulk_order = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = 'Orders'
