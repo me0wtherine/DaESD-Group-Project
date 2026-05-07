@@ -56,7 +56,7 @@
               </div>
 
             </div>
-            </div>
+          </div>
 
           {% if order.recurring %}
             <div class="recurring-info">
@@ -94,6 +94,7 @@
                   <th>Product</th>
                   <th>Quantity</th>
                   <th>Price</th>
+                  <th>Review</th>
                 </tr>
               </thead>
               <tbody>
@@ -102,6 +103,9 @@
                     <td>{{ item.product.name }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>£{{ item.price }}</td>
+                    {% if order.order_status == 'confirmed' %}
+                      <td><a href = "{% url 'product_detail' item.product.id %}" class="reorder-btn"> Leave Review </a></td>
+                    {% endif %}
                   </tr>
                 {% endfor %}
               </tbody>
