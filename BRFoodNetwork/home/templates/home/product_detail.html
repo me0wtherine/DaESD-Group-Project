@@ -253,10 +253,288 @@
     font-weight: 600;
   }
 
+  /* Recipes Section */
+  .pd-recipes {
+    margin-top: 48px;
+    padding-top: 36px;
+    border-top: 2px solid #e8f5e9;
+  }
+  
+  .pd-recipes h2 {
+    font-size: 1.3em;
+    color: #333;
+    margin: 0 0 24px;
+  }
+
+  .recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .recipe-card {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .recipe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .recipe-image {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #e0e0e0;
+    overflow: hidden;
+  }
+
+  .recipe-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .recipe-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 3em;
+    color: #999;
+  }
+
+  .recipe-content {
+    padding: 16px;
+  }
+
+  .recipe-content h3 {
+    margin: 0 0 4px;
+    font-size: 1.05em;
+    color: #333;
+  }
+
+  .recipe-producer {
+    margin: 0 0 8px;
+    font-size: 0.9em;
+    color: #2e7d32;
+    font-weight: 500;
+  }
+
+  .recipe-season {
+    display: inline-block;
+    font-size: 0.8em;
+    padding: 4px 8px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+
+  .recipe-description {
+    margin: 8px 0;
+    font-size: 0.9em;
+    color: #666;
+    line-height: 1.5;
+  }
+
+  .recipe-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.85em;
+    color: #777;
+    margin: 8px 0;
+  }
+
+  .recipe-view-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #2e7d32;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  .recipe-view-btn:hover {
+    background: #1b5e20;
+  }
+
+  .recipe-detail-section {
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 28px;
+    margin: 20px 0;
+    scroll-margin-top: 60px;
+  }
+
+  .recipe-header {
+    margin-bottom: 24px;
+  }
+
+  .recipe-header h2 {
+    margin: 0 0 8px;
+    font-size: 1.5em;
+    color: #333;
+  }
+
+  .by-producer {
+    margin: 0;
+    color: #2e7d32;
+    font-weight: 500;
+  }
+
+  .recipe-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .recipe-detail-image {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .recipe-detail-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .recipe-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .recipe-description {
+    color: #555;
+    line-height: 1.7;
+    margin: 0 0 16px;
+  }
+
+  .recipe-info {
+    background: #fff;
+    border-left: 4px solid #2e7d32;
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 4px;
+  }
+
+  .recipe-info div {
+    margin: 6px 0;
+    font-size: 0.95em;
+    color: #555;
+  }
+
+  .recipe-details h3 {
+    margin: 16px 0 12px;
+    color: #333;
+    font-size: 1.1em;
+  }
+
+  .ingredients-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .ingredients-list li {
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  .ingredients-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #2e7d32;
+    font-weight: bold;
+  }
+
+  .instructions {
+    background: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    color: #555;
+    line-height: 1.8;
+    margin: 12px 0;
+  }
+
+  .recipe-products {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 20px 0;
+  }
+
+  .recipe-products h4 {
+    margin: 0 0 12px;
+    color: #2e7d32;
+  }
+
+  .products-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .product-link {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #fff;
+    border: 1px solid #2e7d32;
+    color: #2e7d32;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    transition: all 0.2s;
+  }
+
+  .product-link:hover {
+    background: #2e7d32;
+    color: #fff;
+  }
+
+  .back-recipe-link {
+    display: inline-block;
+    margin-top: 16px;
+    color: #2e7d32;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .back-recipe-link:hover {
+    text-decoration: underline;
+  }
+
   @media (max-width: 768px) {
     .pd-layout {
       grid-template-columns: 1fr;
       gap: 20px;
+    }
+
+    .recipe-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .recipes-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -444,5 +722,102 @@
     {% endfor %}
   </div>
   {% endif %}
+
+  <!-- Recipes -->
+  {% if recipes %}
+  <div class="pd-recipes">
+    <h2>Recipes Using {{ product.name }}</h2>
+    <div class="recipes-grid">
+      {% for recipe in recipes %}
+      <div class="recipe-card">
+        <div class="recipe-image">
+          {% if recipe.image %}
+            <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">
+          {% else %}
+            <div class="recipe-placeholder">🍳</div>
+          {% endif %}
+        </div>
+        <div class="recipe-content">
+          <h3>{{ recipe.title }}</h3>
+          <p class="recipe-producer">by {{ recipe.producer.business_name }}</p>
+          {% if recipe.season %}
+            <span class="recipe-season">🍂 {{ recipe.get_season_display }}</span>
+          {% endif %}
+          <p class="recipe-description">{{ recipe.description|truncatewords:20 }}</p>
+          <div class="recipe-meta">
+            {% if recipe.prep_time_minutes %}
+              <span>⏱️ {{ recipe.prep_time_minutes }} min prep</span>
+            {% endif %}
+            {% if recipe.serves %}
+              <span>🍽️ {{ recipe.serves }}</span>
+            {% endif %}
+          </div>
+          <a href="#recipe-{{ recipe.id }}" class="recipe-view-btn">View Full Recipe</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Full recipe details -->
+    {% for recipe in recipes %}
+    <div id="recipe-{{ recipe.id }}" class="recipe-detail-section">
+      <div class="recipe-header">
+        <h2>{{ recipe.title }}</h2>
+        <p class="by-producer">by {{ recipe.producer.business_name }}</p>
+      </div>
+      
+      <div class="recipe-grid">
+        {% if recipe.image %}
+        <div class="recipe-detail-image">
+          <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">
+        </div>
+        {% endif %}
+        
+        <div class="recipe-details">
+          <p class="recipe-description">{{ recipe.description }}</p>
+          
+          {% if recipe.prep_time_minutes or recipe.cook_time_minutes or recipe.serves %}
+          <div class="recipe-info">
+            {% if recipe.prep_time_minutes %}
+              <div><strong>Prep Time:</strong> {{ recipe.prep_time_minutes }} minutes</div>
+            {% endif %}
+            {% if recipe.cook_time_minutes %}
+              <div><strong>Cook Time:</strong> {{ recipe.cook_time_minutes }} minutes</div>
+            {% endif %}
+            {% if recipe.serves %}
+              <div><strong>Serves:</strong> {{ recipe.serves }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <h3>Ingredients</h3>
+          <ul class="ingredients-list">
+            {% for ingredient in recipe.ingredients|linebreaks|safe %}
+              <li>{{ ingredient }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <h3>Instructions</h3>
+      <div class="instructions">
+        {{ recipe.instructions|linebreaksbr }}
+      </div>
+
+      <div class="recipe-products">
+        <h4>Products used in this recipe:</h4>
+        <div class="products-list">
+          {% for product in recipe.products.all %}
+            <a href="{% url 'product_detail' product.id %}" class="product-link">{{ product.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <a href="{% url 'shop' %}" class="back-recipe-link">← Back to Recipes</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

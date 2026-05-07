@@ -72,3 +72,36 @@ class Reviews(models.Model):
 
     def __str__(self):
         return f'Review for {self.product.name} by {self.customer.username}'
+
+
+class Recipe(models.Model):
+    """Recipes created by producers to share with customers."""
+
+    SEASON_CHOICES = [
+        ('spring', 'Spring'),
+        ('summer', 'Summer'),
+        ('autumn', 'Autumn'),
+        ('winter', 'Winter'),
+    ]
+
+    producer = models.ForeignKey(Producers, on_delete=models.CASCADE, related_name='recipes')
+    title = models.CharField(max_length=200)
+    description = models.TextField(help_text='Recipe overview and story')
+    ingredients = models.TextField(help_text='List ingredients, one per line or comma-separated')
+    instructions = models.TextField(help_text='Step-by-step cooking instructions')
+    image = models.ImageField(upload_to='recipe_images/', blank=True, null=True)
+    products = models.ManyToManyField(Products, related_name='recipes', blank=True, help_text='Link to products used in this recipe')
+    season = models.CharField(max_length=20, choices=SEASON_CHOICES, blank=True, help_text='Seasonal tag for organization')
+    prep_time_minutes = models.PositiveIntegerField(blank=True, null=True, help_text='Preparation time in minutes')
+    cook_time_minutes = models.PositiveIntegerField(blank=True, null=True, help_text='Cooking time in minutes')
+    serves = models.CharField(max_length=100, blank=True, help_text='Number of servings')
+    is_published = models.BooleanField(default=True, help_text='Whether recipe is visible to customers')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Recipes'
+
+    def __str__(self):
+        return self.title

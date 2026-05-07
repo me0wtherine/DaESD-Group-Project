@@ -223,6 +223,10 @@ def product_detail(request, product_id):
         items__product__id=product_id,
     ).exists()
 
+    # Get recipes linked to this product
+    from products.models import Recipe
+    recipes = Recipe.objects.filter(products=product, is_published=True).order_by('-created_at')
+
     return render(request, 'home/product_detail.html', {
         'product': product,
         'producer': producer,
@@ -232,6 +236,7 @@ def product_detail(request, product_id):
         'user_review': user_review,
         'can_review': user_can_review,
         'allergens': allergen_display,
+        'recipes': recipes,
     })
 
 

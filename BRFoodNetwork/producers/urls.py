@@ -14,4 +14,10 @@ urlpatterns = [
     path('edit-product/<int:product_id>/', views.edit_product, name='edit_product'),
     path('delete-product/<int:product_id>/', views.delete_product, name='delete_product'),
     path('settlements/', views.weekly_settlements, name='weekly_settlements'),
+    
+    # Recipe management routes
+    path('recipes/', views.recipes_list, name='recipes_list'),
+    path('recipes/add/', views.add_recipe, name='add_recipe'),
+    path('recipes/<int:recipe_id>/edit/', views.edit_recipe, name='edit_recipe'),
+    path('recipes/<int:recipe_id>/delete/', views.delete_recipe, name='delete_recipe'),
 ]

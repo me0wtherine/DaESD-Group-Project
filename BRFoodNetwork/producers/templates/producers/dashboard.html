@@ -33,8 +33,8 @@
                     <span class="sidebar-icon">💰</span> Surplus Deals</a></li>
                 <li><a href="{% url 'producer_payouts' %}" class="sidebar-link">
                     <span class="sidebar-icon">💳</span> Payouts</a></li>
-                <li><a href="{% url 'weekly_settlements' %}" class="sidebar-link">
-                    <span class="sidebar-icon">📊</span> Weekly Settlements</a></li>
+                <li><a href="{% url 'add_recipe' %}" class="sidebar-link">
+                    <span class="sidebar-icon">🍽️</span> Recipes</a></li>
             </ul>
         </aside>
 
@@ -109,8 +109,8 @@
                             </div>
                             <!-- Farm Story / Recipes -->
                             <div class="highlight-card">
-                                <h4>Farm Story / Recipes</h4>
-                                <textarea name="farm_story" rows="3" placeholder="Share your farm story or favourite recipes...">{{ producer.farm_story }}</textarea>
+                                <h4>Farm Story</h4>
+                                <textarea name="farm_story" rows="3" placeholder="Share your farm story">{{ producer.farm_story }}</textarea>
                             </div>
                         </div>
                     </div>

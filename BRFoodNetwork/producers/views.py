@@ -8,9 +8,9 @@ from django.views.decorators.http import require_POST
 
 from accounts.models import Producers
 from accounts.geocoding import geocode_address, is_within_bristol_radius
-from products.models import Products
+from products.models import Products, Recipe
 from notifications.models import Notification
-from .forms import StoreInfoForm, ProductForm
+from .forms import StoreInfoForm, ProductForm, RecipeForm
 
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -527,3 +527,75 @@ def update_order_status(request, order_id):
         )
     messages.success(request, f'Order #{order.id:05d} status updated to {order.get_order_status_display()}.')
     return redirect('producer_orders')
+
+
+# Recipe Management Views
+
+@producer_required
+def recipes_list(request):
+    """List all recipes for the logged-in producer."""
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+    recipes = Recipe.objects.filter(producer=producer).order_by('-created_at')
+    
+    return render(request, 'producers/recipes_list.html', {
+        'producer': producer,
+        'recipes': recipes,
+    })
+
+
+@producer_required
+def add_recipe(request):
+    """Add a new recipe."""
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+
+    if request.method == 'POST':
+        form = RecipeForm(request.POST, request.FILES, producer=producer)
+        if form.is_valid():
+            recipe = form.save(commit=False)
+            recipe.producer = producer
+            recipe.save()
+            form.save_m2m()  # Save the many-to-many products relationship
+            messages.success(request, f'Recipe "{recipe.title}" has been created successfully!')
+            return redirect('recipes_list')
+    else:
+        form = RecipeForm(producer=producer)
+
+    return render(request, 'producers/add_recipe.html', {
+        'form': form,
+        'producer': producer,
+    })
+
+
+@producer_required
+def edit_recipe(request, recipe_id):
+    """Edit an existing recipe."""
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+    recipe = get_object_or_404(Recipe, id=recipe_id, producer=producer)
+
+    if request.method == 'POST':
+        form = RecipeForm(request.POST, request.FILES, instance=recipe, producer=producer)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Recipe "{recipe.title}" has been updated!')
+            return redirect('recipes_list')
+    else:
+        form = RecipeForm(instance=recipe, producer=producer)
+
+    return render(request, 'producers/edit_recipe.html', {
+        'form': form,
+        'producer': producer,
+        'recipe': recipe,
+    })
+
+
+@producer_required
+def delete_recipe(request, recipe_id):
+    """Delete a recipe."""
+    producer = get_object_or_404(Producers, id=request.session['user_id'])
+    recipe = get_object_or_404(Recipe, id=recipe_id, producer=producer)
+
+    if request.method == 'POST':
+        title = recipe.title
+        recipe.delete()
+        messages.success(request, f'Recipe "{title}" has been deleted.')
+    return redirect('recipes_list')

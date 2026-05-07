@@ -1,6 +1,6 @@
 from django import forms
 from accounts.models import Producers
-from products.models import Products
+from products.models import Products, Recipe
 from django.forms import CheckboxSelectMultiple
 
 
@@ -82,3 +82,73 @@ class ProductForm(forms.ModelForm):
         }
 
 
+class RecipeForm(forms.ModelForm):
+    """Form for producers to add/edit recipes"""
+    products = forms.ModelMultipleChoiceField(
+        queryset=Products.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        help_text='Select products used in this recipe'
+    )
+
+    class Meta:
+        model = Recipe
+        fields = ['title', 'description', 'ingredients', 'instructions', 'image', 
+                  'products', 'season', 'prep_time_minutes', 'cook_time_minutes', 'serves', 'is_published']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'placeholder': 'Recipe title',
+                'class': 'form-control'
+            }),
+            'description': forms.Textarea(attrs={
+                'placeholder': 'Share the story behind this recipe and why customers should try it...',
+                'rows': 3,
+                'class': 'form-control'
+            }),
+            'ingredients': forms.Textarea(attrs={
+                'placeholder': 'List ingredients, one per line',
+                'rows': 5,
+                'class': 'form-control'
+            }),
+            'instructions': forms.Textarea(attrs={
+                'placeholder': 'Step-by-step cooking instructions',
+                'rows': 6,
+                'class': 'form-control'
+            }),
+            'season': forms.Select(attrs={'class': 'form-control'}),
+            'prep_time_minutes': forms.NumberInput(attrs={
+                'placeholder': 'Preparation time (minutes)',
+                'min': '0',
+                'class': 'form-control'
+            }),
+            'cook_time_minutes': forms.NumberInput(attrs={
+                'placeholder': 'Cooking time (minutes)',
+                'min': '0',
+                'class': 'form-control'
+            }),
+            'serves': forms.TextInput(attrs={
+                'placeholder': 'e.g. Serves 4, Makes 12 cookies',
+                'class': 'form-control'
+            }),
+        }
+        labels = {
+            'title': 'Recipe Title',
+            'description': 'Recipe Story',
+            'ingredients': 'Ingredients',
+            'instructions': 'Cooking Instructions',
+            'image': 'Recipe Image',
+            'products': 'Linked Products',
+            'season': 'Season (Optional)',
+            'prep_time_minutes': 'Prep Time (minutes)',
+            'cook_time_minutes': 'Cook Time (minutes)',
+            'serves': 'Serving Size',
+            'is_published': 'Publish Recipe',
+        }
+
+    def __init__(self, *args, producer=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter products to only show the producer's products
+        if producer:
+            self.fields['products'].queryset = Products.objects.filter(producer=producer)
+        else:
+            self.fields['products'].queryset = Products.objects.none()
