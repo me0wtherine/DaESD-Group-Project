@@ -246,6 +246,7 @@ def payment_success(request):
         recurring_frequency=checkout_data.get('recurring_frequency',''),
         recurring_start_date=checkout_data.get('recurring_start_date') or None,
         bulk_order=checkout_data.get("bulk_order", False),
+        special_delivery_requirements=checkout_data.get('special_delivery_requirements', ''),
 
     )
 
@@ -260,6 +261,13 @@ def payment_success(request):
         )
 
 
+        special_requirements = checkout_data.get('special_delivery_requirements', '')
+        notification_message = f"order #{order.id} includes {item.quantity} x {item.product.name}."
+
+        if special_requirements:
+         notification_message += f" Special delivery requirements: {special_requirements}"
+        
+        
         Notification.objects.create(
             producer=item.product.producer,
             title="New order recieved",

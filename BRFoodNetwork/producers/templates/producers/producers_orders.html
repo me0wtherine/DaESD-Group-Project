@@ -86,6 +86,15 @@
                                     <p class="order-value">{{ entry.item.order.fulfillment_type|title }}</p>
                                 </div>
 
+                                {% if entry.item.order.special_delivery_requirements%}
+                                <div class="order-field">
+                                    <label class ="order-label">Special Delivery requirements: </label>
+                                    <p class ="order-value special-requirements">
+                                        {{entry.item.order.special_delivery_requirements}}
+                                    </p>
+                                </div>
+                                {% endif %}
+
                                 {% if entry.item.order.recurring %}
                                 <div class="order-field">
                                     <label class="order-label">Recurring</label>
@@ -134,7 +143,7 @@
                         <div class="order-summary">
                             <p class="summary-text">
                                 Items Ordered: <strong>{{ entry.item.quantity }}</strong> |
-                                Item Total: <strong>£{{ entry.item.price }}</strong>
+                                Item Total: <strong>£{% widthratio entry.item.price 1 entry.item.quantity%}</strong>
                                 {% if entry.food_miles != None %}
                                 | Food Miles: <strong class="food-miles-highlight">{{ entry.food_miles }} mi</strong>
                                 {% endif %}
@@ -153,14 +162,14 @@
                                     <tr>
                                         <th>Item Name</th>
                                         <th>Quantity</th>
-                                        <th>Price</th>
+                                        <th>Total Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
                                         <td>{{ entry.item.product.name }}</td>
                                         <td>{{ entry.item.quantity }}</td>
-                                        <td>£{{ entry.item.price }}</td>
+                                        <td>£{% widthratio entry.item.price 1 entry.item.quantity %}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -482,6 +491,15 @@
         text-transform: uppercase;
 
     }
+
+    .special-requirements {
+    background: #fff3cd;
+    border-left: 4px solid #856404;
+    padding: 10px;
+    border-radius: 4px;
+    color: #5c4200;
+    font-weight: 600;
+}
 </style>
 
 <script>

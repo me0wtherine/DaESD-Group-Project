@@ -83,6 +83,12 @@ def add_to_cart(request, product_id):
     customer = Accounts.objects.filter(id=user_id).first()
     message = ""
 
+
+
+    if quantity > product.stock_quantity:
+        quantity = product.stock_quantity
+        message = "Producer does not have enough stock for this quantity"
+
     if customer.customer_type == "individual" and quantity > 10: 
         quantity = 10
         message = "Individual customers cannot order more than 10 of the same item"
@@ -100,6 +106,9 @@ def add_to_cart(request, product_id):
 
     if not created:
         cart_item.quantity += quantity
+
+        if cart_item.quantity > product.stock_quantity:
+            cart_item.quantity = product.stock_quantity
 
         if customer.customer_type == "individual" and cart_item.quantity > 10:
 
@@ -136,7 +145,11 @@ def update_quantity(request, item_id):
 
 
     customer = Accounts.objects.filter(id=user_id).first()
-
+    if quantity > item.product.stock_quantity:
+      quantity = item.product.stock_quantity
+      message = "Producer does not have enough stock for this quantity"
+    
+    
     if customer.customer_type == "individual" and quantity > 10: 
         quantity = 10
         message = "Individual customers cannot order more than 10 of the same item"
@@ -234,6 +247,7 @@ def checkout(request):
         address = request.POST.get("address", "").strip()
         postcode = request.POST.get("postcode", "").strip()
         fulfillment_type = request.POST.get("fulfillment_type", "delivery")
+        special_delivery_requirements = request.POST.get("special_delivery_requirements", "").strip()
 
         same_delivery_date = request.POST.get("same_delivery_date") == "yes"
         common_delivery_date = request.POST.get("common_delivery_date", "")
@@ -313,6 +327,7 @@ def checkout(request):
             "recurring_frequency": recurring_frequency,
             "recurring_start_date": recurring_start_date,
             "bulk_order": bulk_order,
+            "special_delivery_requirements": special_delivery_requirements
         }
 
         return redirect("payments:payment_page")

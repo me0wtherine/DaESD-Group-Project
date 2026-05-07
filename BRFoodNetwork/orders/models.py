@@ -24,6 +24,7 @@ class Orders(models.Model):
     delivery_date = models.DateTimeField(blank=True, null=True)
     fulfillment_type = models.CharField(max_length=20, choices=FULFILLMENT_CHOICES, default='delivery')
     delivery_address = models.TextField(blank=True, default='')
+    special_delivery_requirements = models.TextField(blank=True, default='')
     payment_method = models.CharField(max_length=50, blank=True, default='')
     stripe_session_id = models.CharField(max_length=255, blank=True, default='')
     order_status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')

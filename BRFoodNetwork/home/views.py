@@ -81,6 +81,7 @@ def shop(request):
     search_query = request.GET.get('Search', '')
     allergens = request.GET.get('allergens', '')
     organic = request.GET.get('organic', '')
+    surplus = request.GET.get('surplus', '')
     
     # Allergen labels for display
     ALLERGEN_LABELS = {
@@ -111,6 +112,10 @@ def shop(request):
 
     if organic:
         products = products.filter(is_organic=True)
+    
+    if surplus:
+        products = products.filter(is_surplus=True)
+
 
     # Convert products to display format
     product_list = []
@@ -154,6 +159,8 @@ def shop(request):
         'selected_category': category,
         'search': search_query,
         'selected_allergens': allergens,
+        'organic': organic,
+        'surplus': surplus,
     })
 
 
