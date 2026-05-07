@@ -39,9 +39,38 @@ def _get_opening_hours_list(producer):
 
 @producer_required
 def dashboard(request):
+    from django.utils.timezone import now
     """Main producer dashboard / manage store page"""
     producer = get_object_or_404(Producers, id=request.session['user_id'])
     products = Products.objects.filter(producer=producer)
+    opening_hours = _get_opening_hours_list(producer)
+
+    today = now().date()
+
+    # CHECK PRODUCTS RETURNING IN 7 DAYS
+    reminder_date = today + timedelta(days=7)
+
+    for product in products:
+
+        if (
+            product.season_start and
+            product.season_start.month == reminder_date.month and
+            product.season_start.day == reminder_date.day and
+            product.last_season_notification != today
+        ):
+
+            Notification.objects.create(
+                producer=producer,
+                message=(
+                    f"Your seasonal product "
+                    f"'{product.name}' will return in 7 days."
+                )
+            )
+
+            # Prevent duplicate notifications
+            product.last_season_notification = today
+            product.save()
+
     opening_hours = _get_opening_hours_list(producer)
 
     return render(request, 'producers/dashboard.html', {
