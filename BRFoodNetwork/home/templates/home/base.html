@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bristol Regional Food Network{% endblock %}</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=5">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=6">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
@@ -13,9 +14,13 @@
     <nav class="navbar">
         <div class="nav-container">
             {% if user_type != 'admin' %}
-              <a href="{% url 'home' %}" class="logo">BRFN</a>
+              <a href="{% url 'home' %}" class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Bristol Regional Food Network" class="logo-img">
+              </a>
             {%else%}
-              <a href="{% url 'admin_dashboard' %}" class="logo">BRFN Admin</a>
+              <a href="{% url 'admin_dashboard' %}" class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Bristol Regional Food Network" class="logo-img">
+              </a>
             {% endif %}
             <ul class="nav-links">
               {% if user_type != 'admin' %}
@@ -50,9 +55,9 @@
                         </div>
                     </li>
                     {% if user_type != 'admin' %}
-                      <button onclick="toggleCart()" class="btn-cart">Cart</button><!-- button for cart-->
+                      <button onclick="toggleCart()" class="btn-cart" aria-label="Open basket" title="Basket"><span class="material-symbols-outlined">shopping_cart</span></button><!-- button for cart-->
                       <button onclick="toggleNotifications()" class="btn-notifications" type="button" aria-label="View notifications" title="Notifications">
-                        <span class="material-symbols-outlined"></span>
+                        <span class="material-symbols-outlined">notifications</span>
                       </button>
                     {% endif %}
                 {% else %}

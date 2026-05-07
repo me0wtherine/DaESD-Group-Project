@@ -13,8 +13,25 @@
 
   <div class="manage-main">
     {% if orders %}
+      <!-- Client-side filter (TC-021) -->
+      <div class="oh-filter">
+        <div class="oh-filter-field">
+          <label>From</label>
+          <input type="date" id="ohFrom">
+        </div>
+        <div class="oh-filter-field">
+          <label>To</label>
+          <input type="date" id="ohTo">
+        </div>
+        <div class="oh-filter-field" style="flex:1;">
+          <label>Producer / Item Search</label>
+          <input type="text" id="ohSearch" placeholder="Type to filter by producer or product name…">
+        </div>
+        <button type="button" id="ohReset" class="oh-reset">Reset</button>
+      </div>
+
       {% for order in orders %}
-        <div class="order-card">
+        <div class="order-card" data-order-date="{{ order.order_date|date:'Y-m-d' }}" data-search-text="{% for item in order.items.all %}{{ item.product.name|lower }} {{ item.product.producer.business_name|lower }} {% endfor %}">
           <div class="order-header">
             <h2 class="order-number">Order {{ order.id|stringformat:"05d" }}</h2>
 
@@ -22,6 +39,7 @@
               <button type="button" class="view-details-btn" onclick="toggleOrderDetails('{{ order.id }}')">
                 View Details
               </button>
+              <a href="{% url 'order_receipt' order.id %}" class="reorder-btn" style="background:#1565c0;" target="_blank">Receipt</a>
               <a href="{% url 'reorder' order.id %}" class="reorder-btn">Reorder</a>
             </div>
           </div>
@@ -263,6 +281,24 @@
         border-bottom: 1px solid #eee;
     }
   }
+
+  /* Filter bar (TC-021) */
+  .oh-filter {
+    background:#fff; border:1px solid #e0e0e0; border-radius:8px;
+    padding:1rem 1.2rem; margin-bottom:1.2rem;
+    display:flex; gap:.9rem; align-items:flex-end; flex-wrap:wrap;
+  }
+  .oh-filter-field { display:flex; flex-direction:column; gap:.3rem; }
+  .oh-filter-field label { font-size:.74rem; font-weight:600; color:#777; text-transform:uppercase; letter-spacing:.4px; }
+  .oh-filter-field input {
+    padding:.5rem .7rem; border:1px solid #ddd; border-radius:6px; font-size:.92rem; min-width:170px;
+  }
+  .oh-filter-field input:focus { outline:none; border-color:#2e7d32; }
+  .oh-reset {
+    background:#fff; color:#2e7d32; border:1px solid #2e7d32; padding:.5rem 1rem;
+    border-radius:6px; font-size:.92rem; cursor:pointer;
+  }
+  .oh-reset:hover { background:#e8f5e9; }
 </style>
 
 <script>
@@ -275,5 +311,35 @@
       details.style.display = "none";
     }
   }
+
+  // Client-side order filter (TC-021)
+  (function () {
+    const fromInput = document.getElementById('ohFrom');
+    const toInput   = document.getElementById('ohTo');
+    const search    = document.getElementById('ohSearch');
+    const reset     = document.getElementById('ohReset');
+    if (!fromInput) return;
+    const cards     = Array.from(document.querySelectorAll('.order-card'));
+
+    function applyFilter() {
+      const from = fromInput.value;
+      const to   = toInput.value;
+      const q    = (search.value || '').toLowerCase().trim();
+      cards.forEach(card => {
+        const date = card.dataset.orderDate || '';
+        const text = card.dataset.searchText || '';
+        let show = true;
+        if (from && date < from) show = false;
+        if (to   && date > to)   show = false;
+        if (q && !text.includes(q)) show = false;
+        card.style.display = show ? '' : 'none';
+      });
+    }
+    [fromInput, toInput, search].forEach(el => el.addEventListener('input', applyFilter));
+    reset.addEventListener('click', () => {
+      fromInput.value = ''; toInput.value = ''; search.value = '';
+      applyFilter();
+    });
+  })();
 </script>
 {% endblock %}

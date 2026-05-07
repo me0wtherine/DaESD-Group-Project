@@ -4,6 +4,7 @@ import math
 from products.models import Products, Reviews
 from accounts.models import Producers, Accounts
 from orders.models import Orders
+from accounts.geocoding import get_driving_distance, get_driving_distances_batch
 
 
 def home(request):
@@ -15,8 +16,7 @@ def home(request):
     if category:
         products = Products.objects.filter(category=category, is_available=True)
     else:
-        # Show popular items (top 6 most recently available products)
-        products = Products.objects.filter(is_available=True).order_by('-created_at')[:6]
+        products = Products.objects.filter(is_available=True).order_by('-created_at')
     
     userid = request.session.get('user_id')
     if userid:
@@ -152,6 +152,7 @@ def product_detail(request, product_id):
 
     # Calculate distance
     distance = None
+    drive_time = None
     user_id = request.session.get('user_id')
     user_type = request.session.get('user_type')
     if producer.latitude and producer.longitude:
@@ -160,7 +161,9 @@ def product_detail(request, product_id):
             customer = Accounts.objects.filter(id=user_id).first()
             if customer and customer.latitude and customer.longitude:
                 ref_lat, ref_lng = customer.latitude, customer.longitude
-        distance = round(_haversine(ref_lat, ref_lng, producer.latitude, producer.longitude), 1)
+        result = get_driving_distance(ref_lat, ref_lng, producer.latitude, producer.longitude)
+        distance = round(result['distance_miles'], 1)
+        drive_time = result['duration_minutes']
 
     # get reviews for this product
     reviews = Reviews.objects.filter(product=product).order_by('-created_at')
@@ -193,6 +196,7 @@ def product_detail(request, product_id):
         'product': product,
         'producer': producer,
         'distance': distance,
+        'drive_time': drive_time,
         'reviews': review_list,
         'user_review': user_review,
         'can_review': user_can_review,
@@ -225,17 +229,25 @@ def producers(request):
     default_lat = 51.4545
     default_lng = -2.5879
 
-    producer_list = []
-    for producer in all_producers:
-        p_lat = producer.latitude
-        p_lng = producer.longitude
+    # Use customer location as origin, or Bristol centre if not logged in
+    origin_lat = customer_lat if customer_lat else default_lat
+    origin_lng = customer_lng if customer_lng else default_lng
 
-        # Calculate food miles if both locations available
-        distance = None
-        if p_lat and p_lng and customer_lat and customer_lng:
-            distance = _haversine(customer_lat, customer_lng, p_lat, p_lng)
-        elif p_lat and p_lng:
-            distance = _haversine(default_lat, default_lng, p_lat, p_lng)
+    all_producers_list = list(all_producers)
+
+    # Batch a single Distance Matrix call for all producers that have coordinates
+    coords_producers = [(i, p) for i, p in enumerate(all_producers_list) if p.latitude and p.longitude]
+    driving_results = {}
+    if coords_producers:
+        destinations = [{'lat': p.latitude, 'lng': p.longitude} for _, p in coords_producers]
+        batch = get_driving_distances_batch(origin_lat, origin_lng, destinations)
+        driving_results = {i: r for (i, _), r in zip(coords_producers, batch)}
+
+    producer_list = []
+    for i, producer in enumerate(all_producers_list):
+        result = driving_results.get(i)
+        distance = round(result['distance_miles'], 1) if result and result['distance_miles'] is not None else None
+        drive_time = result['duration_minutes'] if result else None
 
         producer_list.append({
             'id': producer.id,
@@ -243,9 +255,10 @@ def producers(request):
             'description': producer.description,
             'address': producer.address,
             'postal_code': producer.postal_code,
-            'latitude': p_lat,
-            'longitude': p_lng,
-            'distance': round(distance, 1) if distance is not None else None,
+            'latitude': producer.latitude,
+            'longitude': producer.longitude,
+            'distance': distance,
+            'drive_time': drive_time,
             'collection_available': producer.collection_available,
             'delivery_available': producer.delivery_available,
             'image_url': producer.business_image.url if producer.business_image else None,
@@ -281,6 +294,7 @@ def store(request, producer_id):
 
     # Calculate distance from customer or Bristol centre
     distance = None
+    drive_time = None
     user_id = request.session.get('user_id')
     user_type = request.session.get('user_type')
     if producer.latitude and producer.longitude:
@@ -289,12 +303,15 @@ def store(request, producer_id):
             customer = Accounts.objects.filter(id=user_id).first()
             if customer and customer.latitude and customer.longitude:
                 ref_lat, ref_lng = customer.latitude, customer.longitude
-        distance = round(_haversine(ref_lat, ref_lng, producer.latitude, producer.longitude), 1)
+        result = get_driving_distance(ref_lat, ref_lng, producer.latitude, producer.longitude)
+        distance = round(result['distance_miles'], 1)
+        drive_time = result['duration_minutes']
 
     return render(request, 'home/store.html', {
         'producer': producer,
         'products': products,
         'distance': distance,
+        'drive_time': drive_time,
     })
 
 def add_review(request, product_id):

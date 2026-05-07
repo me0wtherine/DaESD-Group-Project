@@ -1,0 +1,174 @@
+{% extends "home/base.html" %}
+
+{% block title %}Commission Report — Admin{% endblock %}
+
+{% block content %}
+<style>
+  .cr-wrap { max-width:1200px; margin:2rem auto; padding:0 1.5rem; }
+  .cr-back  { display:inline-flex; align-items:center; gap:.4rem; color:#2e7d32; font-size:.9rem; margin-bottom:1.2rem; }
+  .cr-back:hover { text-decoration:underline; }
+
+  .cr-header { background:#1b5e20; color:#fff; border-radius:10px; padding:1.4rem 2rem;
+               display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
+  .cr-header h1 { margin:0; font-size:1.4rem; }
+  .cr-header-meta { font-size:.9rem; color:#c8e6c9; }
+
+  .cr-filter { background:#fff; border-radius:10px; padding:1rem 1.4rem;
+               box-shadow:0 1px 4px rgba(0,0,0,.07); margin-bottom:1.4rem;
+               display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; }
+  .cr-field { display:flex; flex-direction:column; gap:.3rem; }
+  .cr-field label { font-size:.78rem; font-weight:600; color:#777; text-transform:uppercase; letter-spacing:.4px; }
+  .cr-field input { padding:.5rem .7rem; border:1px solid #ddd; border-radius:6px; font-size:.95rem; }
+  .btn-go { background:#2e7d32; color:#fff; border:none; padding:.55rem 1.3rem; border-radius:6px; font-size:.92rem; cursor:pointer; }
+  .btn-go:hover { background:#1b5e20; }
+  .btn-csv { background:#fff; color:#1b5e20; border:1px solid #1b5e20; padding:.55rem 1.3rem; border-radius:6px; font-size:.92rem; }
+  .btn-csv:hover { background:#e8f5e9; text-decoration:none; }
+
+  .cr-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.4rem; }
+  .cr-stat  { background:#fff; border-radius:10px; padding:1.3rem 1rem; text-align:center;
+              border-top:4px solid #2e7d32; box-shadow:0 1px 4px rgba(0,0,0,.07); }
+  .cr-stat.amber { border-top-color:#f57f17; }
+  .cr-stat.blue  { border-top-color:#1565c0; }
+  .cr-stat-num   { font-size:1.7rem; font-weight:700; color:#2e7d32; line-height:1.1; }
+  .cr-stat.amber .cr-stat-num { color:#f57f17; }
+  .cr-stat.blue  .cr-stat-num { color:#1565c0; }
+  .cr-stat-label { font-size:.78rem; color:#777; margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+
+  .cr-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.07); overflow:hidden; margin-bottom:1.4rem; }
+  .cr-card-head { padding:.85rem 1.3rem; border-bottom:1px solid #f0f0f0; }
+  .cr-card-head h2 { margin:0; font-size:1rem; font-weight:600; color:#1b5e20; }
+
+  .cr-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  .cr-table th { padding:9px 12px; text-align:left; font-size:.74rem; text-transform:uppercase;
+                 letter-spacing:.5px; color:#888; background:#fafafa; border-bottom:1px solid #ececec; }
+  .cr-table td { padding:9px 12px; border-bottom:1px solid #f5f5f5; vertical-align:middle; }
+  .cr-table tbody tr:last-child td { border-bottom:none; }
+  .cr-table tbody tr:nth-child(even) td { background:#fafafa; }
+  .cr-table tfoot td { background:#1b5e20; color:#fff; font-weight:600; }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+
+  .badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:.78rem; font-weight:600; }
+  .badge-amber { background:#fff8e1; color:#f57f17; }
+
+  .cr-empty { padding:2rem; color:#aaa; text-align:center; }
+</style>
+
+<div class="cr-wrap">
+  <a href="{% url 'admin_dashboard' %}" class="cr-back">← Back to Dashboard</a>
+
+  <div class="cr-header">
+    <h1>Network Commission Report</h1>
+    <div class="cr-header-meta">{{ start_date|date:"d M Y" }} — {{ end_date|date:"d M Y" }} · {{ order_count }} payment record{{ order_count|pluralize }}</div>
+  </div>
+
+  <!-- Date filter -->
+  <form method="get" class="cr-filter">
+    <div class="cr-field">
+      <label>Start Date</label>
+      <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+    </div>
+    <div class="cr-field">
+      <label>End Date</label>
+      <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+    </div>
+    <button type="submit" class="btn-go">Apply</button>
+    <a href="?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}&export=csv" class="btn-csv">⤓ Download CSV</a>
+  </form>
+
+  <!-- Totals -->
+  <div class="cr-stats">
+    <div class="cr-stat">
+      <div class="cr-stat-num">£{{ total_order_value|floatformat:2 }}</div>
+      <div class="cr-stat-label">Total Order Value</div>
+    </div>
+    <div class="cr-stat amber">
+      <div class="cr-stat-num">£{{ total_commission|floatformat:2 }}</div>
+      <div class="cr-stat-label">Network Commission (5%)</div>
+    </div>
+    <div class="cr-stat blue">
+      <div class="cr-stat-num">£{{ total_producer_payouts|floatformat:2 }}</div>
+      <div class="cr-stat-label">Producer Payouts (95%)</div>
+    </div>
+    <div class="cr-stat">
+      <div class="cr-stat-num">{{ order_count }}</div>
+      <div class="cr-stat-label">Payment Records</div>
+    </div>
+  </div>
+
+  <!-- Summary by producer -->
+  <div class="cr-card">
+    <div class="cr-card-head"><h2>Summary by Producer</h2></div>
+    {% if producer_summary %}
+    <table class="cr-table">
+      <thead>
+        <tr>
+          <th>Producer</th>
+          <th class="num">Orders</th>
+          <th class="num">Order Value</th>
+          <th class="num">Commission (5%)</th>
+          <th class="num">Producer Payout (95%)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in producer_summary %}
+        <tr>
+          <td><strong>{{ s.producer.business_name }}</strong></td>
+          <td class="num">{{ s.order_count }}</td>
+          <td class="num">£{{ s.total_value|floatformat:2 }}</td>
+          <td class="num" style="color:#f57f17;font-weight:600;">£{{ s.total_commission|floatformat:2 }}</td>
+          <td class="num" style="color:#1565c0;font-weight:600;">£{{ s.total_payment|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Totals</td>
+          <td class="num">{{ order_count }}</td>
+          <td class="num">£{{ total_order_value|floatformat:2 }}</td>
+          <td class="num">£{{ total_commission|floatformat:2 }}</td>
+          <td class="num">£{{ total_producer_payouts|floatformat:2 }}</td>
+        </tr>
+      </tfoot>
+    </table>
+    {% else %}
+      <div class="cr-empty">No payments in this date range.</div>
+    {% endif %}
+  </div>
+
+  <!-- Detail table -->
+  <div class="cr-card">
+    <div class="cr-card-head"><h2>Detailed Order Breakdown</h2></div>
+    {% if payments %}
+    <table class="cr-table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>Producer</th>
+          <th class="num">Subtotal</th>
+          <th class="num">Commission</th>
+          <th class="num">Producer Payment</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td><span class="badge badge-amber">#{{ p.order.id }}</span></td>
+          <td>{{ p.order.order_date|date:"d M Y" }}</td>
+          <td>{{ p.order.user.name }}</td>
+          <td>{{ p.producer.business_name }}</td>
+          <td class="num">£{{ p.network_commission|add:p.producer_payment|floatformat:2 }}</td>
+          <td class="num" style="color:#f57f17;">£{{ p.network_commission|floatformat:2 }}</td>
+          <td class="num" style="color:#1565c0;">£{{ p.producer_payment|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="cr-empty">No payments to show.</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -380,6 +380,22 @@
    
   <div class="pd-description">
     <h2>Customer Reviews</h2>
+
+  {# Average rating summary (TC-024) #}
+  {% if product.average_rating %}
+    <div class="rating-summary" style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;padding:.8rem 1rem;background:#fff8e1;border-radius:8px;border:1px solid #ffe082;">
+      <div style="font-size:2rem;font-weight:700;color:#f57f17;line-height:1;">{{ product.average_rating }}</div>
+      <div>
+        <div style="color:#f57f17;font-size:1.2rem;letter-spacing:2px;">
+          {% for i in "12345" %}{% if forloop.counter <= product.average_rating %}★{% else %}☆{% endif %}{% endfor %}
+        </div>
+        <div style="color:#888;font-size:.85rem;">Based on {{ product.review_count }} review{{ product.review_count|pluralize }}</div>
+      </div>
+    </div>
+  {% else %}
+    <p style="color:#aaa;font-size:.9rem;">No reviews yet — be the first to review this product.</p>
+  {% endif %}
+
   {% if user %}
     {% if user_review %}
       <p>Your review:</p>
@@ -417,7 +433,9 @@
     <!-- Add average rating -->
     {% for review in reviews %}
       <div class="pd-review">
-        <p><strong>{{ review.customer }}</strong> - {{ review.created_at|date:"d/m/Y" }}</p>
+        <p><strong>{{ review.customer }}</strong> - {{ review.created_at|date:"d/m/Y" }}
+          <span style="color:#f57f17;letter-spacing:1px;margin-left:.5rem;">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+        </p>
         <p>{{ review.comment|linebreaksbr }}</p>
         <hr>
       </div>

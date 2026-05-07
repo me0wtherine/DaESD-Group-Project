@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 
 from accounts.models import Producers
+from accounts.geocoding import geocode_address, is_within_bristol_radius
 from products.models import Products
 from notifications.models import Notification
 from .forms import StoreInfoForm, ProductForm
@@ -97,9 +98,19 @@ def edit_store(request):
     if request.method == 'POST':
         form = StoreInfoForm(request.POST, request.FILES, instance=producer)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Store information updated successfully!')
-            return redirect('producer_dashboard')
+            updated = form.save(commit=False)
+            # Enforce 20-mile Bristol radius (straight-line / Haversine) on any address change
+            lat, lng = geocode_address(updated.address, updated.postal_code)
+            if lat is None or lng is None:
+                messages.error(request, 'Could not verify that address. Please enter a valid UK address and postcode.')
+            elif not is_within_bristol_radius(lat, lng):
+                messages.error(request, 'That address is outside the 20-mile Bristol service area (straight-line distance from city centre).')
+            else:
+                updated.latitude = lat
+                updated.longitude = lng
+                updated.save()
+                messages.success(request, 'Store information updated successfully!')
+                return redirect('producer_dashboard')
     else:
         form = StoreInfoForm(instance=producer)
 
@@ -180,7 +191,7 @@ def delete_product(request, product_id):
 def producer_orders(request):
     """Display all orders that contain products from the logged-in producer."""
     from orders.models import OrderItem
-    from accounts.geocoding import haversine
+    from accounts.geocoding import get_driving_distance
 
     producer = get_object_or_404(Producers, id=request.session['user_id'])
 
@@ -195,14 +206,17 @@ def producer_orders(request):
     items_with_miles = []
     for item in order_items:
         food_miles = None
+        drive_time = None
         customer = item.order.user
         if (producer.latitude and producer.longitude and
                 getattr(customer, 'latitude', None) and getattr(customer, 'longitude', None)):
-            food_miles = round(haversine(
+            result = get_driving_distance(
                 producer.latitude, producer.longitude,
                 customer.latitude, customer.longitude
-            ), 1)
-        items_with_miles.append({'item': item, 'food_miles': food_miles})
+            )
+            food_miles = round(result['distance_miles'], 1)
+            drive_time = result['duration_minutes']
+        items_with_miles.append({'item': item, 'food_miles': food_miles, 'drive_time': drive_time})
 
     return render(request, 'producers/producers_orders.html', {
         'producer': producer,

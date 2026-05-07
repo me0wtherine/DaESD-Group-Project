@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import re
 import urllib.request
 import urllib.parse
@@ -61,3 +62,66 @@ def is_within_bristol_radius(lat, lng):
     if lat is None or lng is None:
         return False
     return haversine(BRISTOL_LAT, BRISTOL_LNG, lat, lng) <= MAX_RADIUS_MILES
+
+
+def get_driving_distance(lat1, lng1, lat2, lng2):
+    """
+    Return driving distance (miles) and duration (minutes) between two points
+    by calling the API gateway's /distance endpoint.
+    Falls back to straight-line haversine if the gateway is unreachable or
+    the Google key is not configured.
+    Result: {"distance_miles": float, "duration_minutes": float|None, "source": str}
+    """
+    gateway_url = os.getenv('API_GATEWAY_URL', '')
+    if gateway_url:
+        try:
+            params = urllib.parse.urlencode({
+                'origin_lat': lat1, 'origin_lng': lng1,
+                'dest_lat': lat2, 'dest_lng': lng2,
+            })
+            req = urllib.request.Request(
+                f"{gateway_url}/distance?{params}",
+                headers={'User-Agent': 'BRFoodNetwork/1.0'},
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                return json.loads(resp.read().decode())
+        except Exception:
+            pass
+    # Fallback
+    return {'distance_miles': haversine(lat1, lng1, lat2, lng2), 'duration_minutes': None, 'source': 'haversine'}
+
+
+def get_driving_distances_batch(origin_lat, origin_lng, destinations):
+    """
+    Return driving distances from one origin to multiple destinations in a
+    single API gateway call (Google Distance Matrix batch request).
+    destinations: list of {"lat": float, "lng": float}
+    Returns a list of {"distance_miles": float, "duration_minutes": float|None, "source": str}
+    in the same order as destinations.  Falls back to haversine on failure.
+    """
+    if not destinations:
+        return []
+    gateway_url = os.getenv('API_GATEWAY_URL', '')
+    if gateway_url:
+        try:
+            payload = json.dumps({
+                'origin_lat': origin_lat,
+                'origin_lng': origin_lng,
+                'destinations': destinations,
+            }).encode('utf-8')
+            req = urllib.request.Request(
+                f"{gateway_url}/distance/matrix",
+                data=payload,
+                headers={'Content-Type': 'application/json', 'User-Agent': 'BRFoodNetwork/1.0'},
+                method='POST',
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return json.loads(resp.read().decode())
+        except Exception:
+            pass
+    # Fallback: haversine for every destination
+    return [
+        {'distance_miles': haversine(origin_lat, origin_lng, d['lat'], d['lng']),
+         'duration_minutes': None, 'source': 'haversine'}
+        for d in destinations
+    ]

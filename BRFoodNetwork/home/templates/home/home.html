@@ -32,7 +32,7 @@
     <div class="content-row">
         <!-- Popular Items -->
         <div class="popular-items">
-            <h2>{% if selected_category %}{{ selected_category|title }} Products{% else %}Popular Items{% endif %}</h2>
+            <h2>{% if selected_category %}{{ selected_category|title }} Products{% else %}All Products{% endif %}</h2>
             <div class="product-grid">
                 {% for item in popular_items %}
                 <div class="product-card">

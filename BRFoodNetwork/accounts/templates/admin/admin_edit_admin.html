@@ -1,0 +1,96 @@
+{% extends "home/base.html" %}
+{% block title %}Edit Admin · {{ admin.name }}{% endblock %}
+{% block content %}
+<style>
+  .ae-wrap { max-width:900px; margin:2rem auto; padding:0 1.5rem; }
+  .ae-back { color:#1b5e20; text-decoration:none; font-size:.9rem; }
+  .ae-back:hover { text-decoration:underline; }
+  .ae-header { background:#1b5e20; color:#fff; border-radius:10px; padding:1.2rem 1.6rem;
+    margin:1rem 0 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+  .ae-header h1 { margin:0; font-size:1.4rem; }
+  .ae-header .role-badge { background:#fff; color:#1b5e20; padding:.25rem .8rem; border-radius:999px;
+    font-size:.78rem; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
+  .ae-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.07); margin-bottom:1.2rem; }
+  .ae-head { padding:.9rem 1.4rem; border-bottom:1px solid #f0f0f0; }
+  .ae-head h2 { margin:0; font-size:1rem; color:#1b5e20; }
+  .ae-body { padding:1.2rem 1.4rem; }
+  .ae-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .ae-field { display:flex; flex-direction:column; gap:.3rem; }
+  .ae-field.full { grid-column:1/-1; }
+  .ae-field label { font-size:.78rem; font-weight:600; color:#666; text-transform:uppercase; }
+  .ae-field input { padding:.55rem .75rem; border:1px solid #ddd; border-radius:6px; font-size:.95rem; }
+  .ae-field input:focus { outline:none; border-color:#2e7d32; }
+  .ae-hint { color:#999; font-weight:400; text-transform:none; font-size:.7rem; margin-left:.4rem; }
+  .ae-actions { margin-top:1rem; display:flex; gap:.6rem; justify-content:flex-end; }
+  .btn-save { background:#2e7d32; color:#fff; border:none; padding:.6rem 1.4rem; border-radius:6px;
+    font-size:.95rem; font-weight:600; cursor:pointer; }
+  .btn-save:hover { background:#1b5e20; }
+  .ae-msg { padding:.7rem 1rem; border-radius:6px; margin-bottom:1rem; font-size:.9rem; }
+  .ae-msg.error   { background:#ffebee; color:#c62828; border-left:4px solid #c62828; }
+  .ae-msg.success { background:#e8f5e9; color:#2e7d32; border-left:4px solid #2e7d32; }
+  .danger-card { border:1px solid #ffcdd2; }
+  .danger-card .ae-head { background:#ffebee; color:#c62828; border-bottom-color:#ffcdd2; }
+  .danger-card .ae-head h2 { color:#c62828; }
+  .btn-danger { background:#c62828; color:#fff; border:none; padding:.55rem 1.2rem; border-radius:6px;
+    font-size:.9rem; font-weight:600; cursor:pointer; }
+  .btn-danger:hover { background:#8e0000; }
+  .btn-danger[disabled] { background:#aaa; cursor:not-allowed; }
+</style>
+
+<div class="ae-wrap">
+  <a href="{% url 'admin_dashboard' %}" class="ae-back">← Back to Dashboard</a>
+
+  <div class="ae-header">
+    <h1>Edit Admin · {{ admin.name }}</h1>
+    <span class="role-badge">Admin{% if is_self %} · You{% endif %}</span>
+  </div>
+
+  {% if error %}<div class="ae-msg error">{{ error }}</div>{% endif %}
+  {% if success %}<div class="ae-msg success">{{ success }}</div>{% endif %}
+
+  <!-- Edit Details -->
+  <div class="ae-card">
+    <div class="ae-head"><h2>Admin Details — #{{ admin.id }}</h2></div>
+    <div class="ae-body">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_details">
+        <div class="ae-grid">
+          <div class="ae-field">
+            <label>Name</label>
+            <input type="text" name="name" value="{{ admin.name }}" required>
+          </div>
+          <div class="ae-field">
+            <label>Email</label>
+            <input type="email" name="email" value="{{ admin.email }}" required>
+          </div>
+          <div class="ae-field full">
+            <label>New Password <span class="ae-hint">(leave blank to keep current)</span></label>
+            <input type="password" name="new_password" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="ae-actions">
+          <button type="submit" class="btn-save">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="ae-card danger-card">
+    <div class="ae-head"><h2>Danger Zone</h2></div>
+    <div class="ae-body">
+      {% if is_self %}
+        <p style="color:#c62828; margin:0;">You cannot delete your own admin account while you are logged in.</p>
+      {% else %}
+        <form method="post" onsubmit="return confirm('Permanently delete this admin? This cannot be undone.');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_account">
+          <p style="color:#666;">Deleting this admin removes their access permanently.</p>
+          <button type="submit" class="btn-danger">Delete Admin</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

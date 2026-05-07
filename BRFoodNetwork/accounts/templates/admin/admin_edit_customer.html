@@ -1,0 +1,196 @@
+{% extends "home/base.html" %}
+
+{% block title %}Edit Customer — {{ customer.name }}{% endblock %}
+
+{% block content %}
+<style>
+  .ae-wrap { max-width:900px; margin:2rem auto; padding:0 1.5rem; }
+  .ae-back  { display:inline-flex; align-items:center; gap:.4rem; color:#2e7d32; font-size:.9rem; margin-bottom:1.2rem; }
+  .ae-back:hover { text-decoration:underline; }
+
+  .ae-card  { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:1.4rem; overflow:hidden; }
+  .ae-head  { background:#1b5e20; color:#fff; padding:.85rem 1.4rem; display:flex; align-items:center; gap:.6rem; }
+  .ae-head h2 { margin:0; font-size:1rem; font-weight:600; }
+  .ae-body  { padding:1.4rem; }
+
+  .ae-grid  { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .ae-field { display:flex; flex-direction:column; gap:.3rem; }
+  .ae-field.full { grid-column:1/-1; }
+  .ae-field label { font-size:.82rem; font-weight:600; color:#555; text-transform:uppercase; letter-spacing:.4px; }
+  .ae-field input, .ae-field select {
+    padding:.55rem .75rem; border:1px solid #ddd; border-radius:6px; font-size:.95rem;
+    transition:border-color .15s;
+  }
+  .ae-field input:focus, .ae-field select:focus { outline:none; border-color:#2e7d32; }
+
+  .ae-hint  { font-size:.8rem; color:#999; margin-top:.2rem; }
+
+  .ae-actions { display:flex; gap:.8rem; margin-top:1.4rem; flex-wrap:wrap; align-items:center; }
+  .btn-save   { background:#2e7d32; color:#fff; border:none; padding:.6rem 1.4rem; border-radius:6px; font-size:.95rem; cursor:pointer; }
+  .btn-save:hover { background:#1b5e20; }
+  .btn-danger { background:#fff; color:#c62828; border:1px solid #c62828; padding:.6rem 1.4rem; border-radius:6px; font-size:.95rem; cursor:pointer; }
+  .btn-danger:hover { background:#ffebee; }
+
+  .ae-alert-success { background:#e8f5e9; color:#1b5e20; border:1px solid #a5d6a7; border-radius:6px; padding:.75rem 1rem; margin-bottom:1rem; }
+  .ae-alert-error   { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; border-radius:6px; padding:.75rem 1rem; margin-bottom:1rem; }
+
+  .ae-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  .ae-table th { padding:8px 12px; text-align:left; font-size:.75rem; text-transform:uppercase; letter-spacing:.4px; color:#888; background:#fafafa; border-bottom:1px solid #ececec; }
+  .ae-table td { padding:8px 12px; border-bottom:1px solid #f5f5f5; vertical-align:middle; }
+  .ae-table tbody tr:last-child td { border-bottom:none; }
+  .ae-table tbody tr:nth-child(even) td { background:#fafafa; }
+
+  .badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:.78rem; font-weight:600; }
+  .badge-green { background:#e8f5e9; color:#2e7d32; }
+  .badge-amber { background:#fff8e1; color:#f57f17; }
+  .badge-red   { background:#ffebee; color:#c62828; }
+  .badge-blue  { background:#e3f2fd; color:#1565c0; }
+
+  .status-form { display:flex; gap:.5rem; align-items:center; }
+  .status-form select { padding:.3rem .5rem; border:1px solid #ddd; border-radius:4px; font-size:.83rem; }
+  .status-form button { padding:.3rem .7rem; background:#2e7d32; color:#fff; border:none; border-radius:4px; font-size:.83rem; cursor:pointer; }
+</style>
+
+<div class="ae-wrap">
+  <a href="{% url 'admin_dashboard' %}" class="ae-back">← Back to Dashboard</a>
+
+  {% if success %}<div class="ae-alert-success">{{ success }}</div>{% endif %}
+  {% if error   %}<div class="ae-alert-error">{{ error }}</div>{% endif %}
+
+  <!-- Edit Details -->
+  <div class="ae-card">
+    <div class="ae-head"><h2>Customer Details — #{{ customer.id }}</h2></div>
+    <div class="ae-body">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_details">
+        <div class="ae-grid">
+          <div class="ae-field">
+            <label>Name</label>
+            <input type="text" name="name" value="{{ customer.name }}" required>
+          </div>
+          <div class="ae-field">
+            <label>Email</label>
+            <input type="email" name="email" value="{{ customer.email }}" required>
+          </div>
+          <div class="ae-field">
+            <label>Phone Number</label>
+            <input type="text" name="phone_number" value="{{ customer.phone_number }}">
+          </div>
+          <div class="ae-field full">
+            <label>Address</label>
+            <input type="text" name="address" value="{{ customer.address }}">
+          </div>
+          <div class="ae-field">
+            <label>Postcode</label>
+            <input type="text" name="postal_code" value="{{ customer.postal_code }}" required>
+          </div>
+          <div class="ae-field">
+            <label>Account Type</label>
+            <select name="customer_type">
+              {% for val, label in customer_type_choices %}
+              <option value="{{ val }}" {% if customer.customer_type == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="ae-field full">
+            <label>New Password <span class="ae-hint">(leave blank to keep current)</span></label>
+            <input type="password" name="new_password" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="ae-actions">
+          <button type="submit" class="btn-save">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div class="ae-card">
+    <div class="ae-head"><h2>Orders ({{ orders.count }})</h2></div>
+    <div class="ae-body" style="padding:0;">
+      {% if orders %}
+      <table class="ae-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Fulfillment</th>
+            <th>Status</th>
+            <th>Update Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td><span class="badge badge-amber">#{{ order.id }}</span></td>
+            <td>{{ order.order_date|date:"d M Y" }}</td>
+            <td>
+              {% for item in order.items.all %}
+                {{ item.product.name }} ×{{ item.quantity }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </td>
+            <td><strong>£{{ order.total_price }}</strong></td>
+            <td>{{ order.fulfillment_type|title }}</td>
+            <td>
+              {% if order.order_status == 'confirmed' %}<span class="badge badge-green">{{ order.order_status|title }}</span>
+              {% elif order.order_status == 'cancelled' %}<span class="badge badge-red">{{ order.order_status|title }}</span>
+              {% elif order.order_status == 'ready' %}<span class="badge badge-blue">{{ order.order_status|title }}</span>
+              {% else %}<span class="badge badge-amber">{{ order.order_status|title }}</span>{% endif %}
+            </td>
+            <td>
+              <form method="post" class="status-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_order_status">
+                <input type="hidden" name="order_id" value="{{ order.id }}">
+                <select name="order_status">
+                  {% for val, label in order_status_choices %}
+                  <option value="{{ val }}" {% if order.order_status == val %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit">Update</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p style="padding:1.2rem;color:#aaa;text-align:center;">No orders for this customer yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Role Management -->
+  <div class="ae-card" style="border:1px solid #ffe082;">
+    <div class="ae-head" style="background:#fff8e1;"><h2 style="color:#f57f17;">Role Management</h2></div>
+    <div class="ae-body">
+      <p style="margin-top:0;color:#555;">
+        Current role: <strong style="color:#1565c0;">Customer</strong>.
+        Promoting will create an admin account using this user's email and password, and remove the customer record.
+      </p>
+      <form method="post" onsubmit="return confirm('Promote {{ customer.name }} to admin? Their customer profile will be removed.');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="promote_admin">
+        <button type="submit" class="btn-save" style="background:#f57f17;">Promote to Admin</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="ae-card">
+    <div class="ae-head" style="background:#c62828;"><h2>Danger Zone</h2></div>
+    <div class="ae-body">
+      <p style="color:#555;margin-bottom:1rem;">Permanently delete this customer account and all associated data. This cannot be undone.</p>
+      <form method="post" onsubmit="return confirm('Delete {{ customer.name }}? This cannot be undone.')">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete_account">
+        <button type="submit" class="btn-danger">Delete Account</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

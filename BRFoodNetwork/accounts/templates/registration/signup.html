@@ -7,11 +7,6 @@
     <div class="auth-card">
         <h1>Customer Sign Up</h1>
         <p>Create your account to shop local produce</p>
-        {% if messages %}
-            {% for message in messages %}
-                <p class="{{ message.tags }}">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
         <form method="post" class="auth-form">
             {% csrf_token %}
             {{ form.as_p }}

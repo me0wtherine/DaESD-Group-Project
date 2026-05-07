@@ -11,7 +11,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 
 from accounts.models import Accounts
-from accounts.geocoding import haversine
+from accounts.geocoding import get_driving_distance
 from cart.models import Cart
 from orders.models import Orders, OrderItem
 from payments.models import Payments, WeeklyPayment
@@ -72,12 +72,16 @@ def payment_page(request):
                 'items': [],
                 'subtotal': Decimal('0.00'),
                 'food_miles': None,
+                'drive_time': None,
             }
-            # Calculate food miles from customer to producer
+            # Calculate driving distance and time from customer to producer
             if customer.latitude and customer.longitude and producer.latitude and producer.longitude:
-                producers_items[producer.id]['food_miles'] = round(
-                    haversine(customer.latitude, customer.longitude, producer.latitude, producer.longitude), 1
+                result = get_driving_distance(
+                    customer.latitude, customer.longitude,
+                    producer.latitude, producer.longitude
                 )
+                producers_items[producer.id]['food_miles'] = round(result['distance_miles'], 1)
+                producers_items[producer.id]['drive_time'] = result['duration_minutes']
         producers_items[producer.id]['items'].append({
             'product': item.product,
             'quantity': item.quantity,

@@ -22,6 +22,10 @@ class Products(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     unit = models.CharField(max_length=50, default=0, help_text='e.g. per kg, per bunch, each')
     stock_quantity = models.PositiveIntegerField(default=0)
+    low_stock_threshold = models.PositiveIntegerField(
+        default=5,
+        help_text='Producer will be alerted when stock falls below this number.',
+    )
     is_available = models.BooleanField(default=True)
     is_organic = models.BooleanField(default=False)
     allergens = models.CharField(max_length=255, blank=True, default='')
@@ -43,6 +47,16 @@ class Products(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def average_rating(self):
+        """Average customer rating, rounded to 1 decimal. None if no reviews."""
+        agg = self.reviews.aggregate(models.Avg('rating'))['rating__avg']
+        return round(agg, 1) if agg is not None else None
+
+    @property
+    def review_count(self):
+        return self.reviews.count()
     
 class Reviews(models.Model):
     """Customer reviews for products."""

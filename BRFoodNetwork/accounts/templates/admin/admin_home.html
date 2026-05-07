@@ -1,22 +1,279 @@
 {% extends "home/base.html" %}
 
-{% block title %}Admin Homepage{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<section class="account-type-section">
-    <div class="account-type-card">
-        <h1>Admin Dashboard</h1>
-        <p>Choose an option</p>
-        <div class="account-type-buttons">
-            <a href="" class="account-type-option">
-                <h2>View Site Analytics</h2>
-                <div class="account-icon">🌾</div>
-            </a>
-            <a href="{% url 'create_admin_account' %}" class="account-type-option">
-                <h2>Create new admin account</h2>
-                <div class="account-icon">👤</div>
-            </a>
-        </div>
+<style>
+  .adm-wrap { max-width:1200px; margin:2rem auto; padding:0 1.5rem; }
+
+  /* page header */
+  .adm-header {
+    background:#1b5e20; color:#fff; border-radius:10px;
+    padding:1.4rem 2rem; display:flex; justify-content:space-between;
+    align-items:center; margin-bottom:1.8rem;
+  }
+  .adm-header h1 { margin:0; font-size:1.5rem; letter-spacing:.5px; }
+  .adm-header a { color:#a5d6a7; font-size:0.9rem; }
+  .adm-header a:hover { color:#fff; }
+  .adm-header-meta { font-size:0.9rem; color:#c8e6c9; }
+
+  /* stat cards */
+  .adm-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.8rem; }
+  .adm-stat {
+    background:#fff; border-radius:10px; padding:1.3rem 1rem;
+    text-align:center; border-top:4px solid #2e7d32;
+    box-shadow:0 1px 4px rgba(0,0,0,.07);
+  }
+  .adm-stat.blue  { border-top-color:#1565c0; }
+  .adm-stat.amber { border-top-color:#f57f17; }
+  .adm-stat-num   { font-size:2.2rem; font-weight:700; color:#333; line-height:1.1; }
+  .adm-stat.blue  .adm-stat-num { color:#1565c0; }
+  .adm-stat.amber .adm-stat-num { color:#f57f17; }
+  .adm-stat-label { font-size:0.82rem; color:#777; margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+
+  /* two-col grid */
+  .adm-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.2rem; }
+
+  /* cards */
+  .adm-card {
+    background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.07);
+    overflow:hidden;
+  }
+  .adm-card-head {
+    padding:.85rem 1.3rem; border-bottom:1px solid #f0f0f0;
+    display:flex; align-items:center; gap:.6rem;
+  }
+  .adm-card-head h2 { margin:0; font-size:1rem; font-weight:600; color:#1b5e20; }
+  .adm-card-head .adm-count {
+    margin-left:auto; background:#e8f5e9; color:#2e7d32;
+    font-size:0.78rem; font-weight:600; border-radius:999px;
+    padding:2px 10px;
+  }
+  .adm-card-body { padding:0; }
+
+  /* tables */
+  .adm-table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+  .adm-table th {
+    padding:9px 12px; text-align:left; font-size:0.75rem;
+    text-transform:uppercase; letter-spacing:.5px; color:#888;
+    background:#fafafa; border-bottom:1px solid #ececec;
+  }
+  .adm-table td { padding:9px 12px; border-bottom:1px solid #f5f5f5; vertical-align:middle; }
+  .adm-table tbody tr:last-child td { border-bottom:none; }
+  .adm-table tbody tr:nth-child(even) td { background:#fafafa; }
+  .adm-table tbody tr:hover td { background:#f0f9f0; }
+
+  /* badges */
+  .badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:0.78rem; font-weight:600; }
+  .badge-green  { background:#e8f5e9; color:#2e7d32; }
+  .badge-red    { background:#ffebee; color:#c62828; }
+  .badge-blue   { background:#e3f2fd; color:#1565c0; }
+  .badge-amber  { background:#fff8e1; color:#f57f17; }
+
+  /* actions footer */
+  .adm-actions {
+    background:#fff; border-radius:10px; padding:1.2rem 1.5rem;
+    box-shadow:0 1px 4px rgba(0,0,0,.07);
+    display:flex; align-items:center; gap:1rem;
+  }
+  .adm-actions h2 { margin:0; font-size:1rem; font-weight:600; color:#1b5e20; flex:1; }
+
+  .adm-empty { padding:1.5rem; color:#aaa; font-size:0.9rem; text-align:center; }
+</style>
+
+<div class="adm-wrap">
+
+  <!-- Header -->
+  <div class="adm-header">
+    <h1>Admin Dashboard</h1>
+    <div class="adm-header-meta">
+      Logged in as <strong>{{ user_name }}</strong>
+      &nbsp;·&nbsp;<a href="{% url 'logout' %}">Log out</a>
     </div>
-</section>
+  </div>
+
+  <!-- Stats -->
+  <div class="adm-stats">
+    <div class="adm-stat">
+      <div class="adm-stat-num">{{ producer_count }}</div>
+      <div class="adm-stat-label">Total Producers</div>
+    </div>
+    <div class="adm-stat">
+      <div class="adm-stat-num">{{ active_producer_count }}</div>
+      <div class="adm-stat-label">Active Producers</div>
+    </div>
+    <div class="adm-stat blue">
+      <div class="adm-stat-num">{{ customer_count }}</div>
+      <div class="adm-stat-label">Customers</div>
+    </div>
+    <div class="adm-stat amber">
+      <div class="adm-stat-num">{{ order_count }}</div>
+      <div class="adm-stat-label">Total Orders</div>
+    </div>
+  </div>
+
+  <!-- Producers + Customers side by side -->
+  <div class="adm-grid2">
+
+    <!-- Producers -->
+    <div class="adm-card">
+      <div class="adm-card-head">
+        <h2>Producers</h2>
+        <span class="adm-count">{{ producer_count }}</span>
+      </div>
+      <div class="adm-card-body">
+        {% if producers %}
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Business</th>
+              <th>Email</th>
+              <th>Location</th>
+              <th>Delivery</th>
+              <th>Collection</th>
+              <th>Status</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for producer in producers %}
+            <tr>
+              <td><strong><a href="{% url 'admin_edit_producer' producer.id %}" style="color:#1b5e20;">{{ producer.business_name }}</a></strong></td>
+              <td style="color:#555;">{{ producer.email }}</td>
+              <td>{{ producer.postal_code }}</td>
+              <td>{% if producer.delivery_available %}<span class="badge badge-green">Yes</span>{% else %}<span style="color:#ccc;">—</span>{% endif %}</td>
+              <td>{% if producer.collection_available %}<span class="badge badge-blue">Yes</span>{% else %}<span style="color:#ccc;">—</span>{% endif %}</td>
+              <td>
+                {% if producer.is_active %}
+                  <span class="badge badge-green">Active</span>
+                {% else %}
+                  <span class="badge badge-red">Inactive</span>
+                {% endif %}
+              </td>
+              <td><span class="badge" style="background:#e8f5e9;color:#2e7d32;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600;">Producer</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+          <div class="adm-empty">No producers registered yet.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Customers -->
+    <div class="adm-card">
+      <div class="adm-card-head">
+        <h2>Customers</h2>
+        <span class="adm-count">{{ customer_count }}</span>
+      </div>
+      <div class="adm-card-body">
+        {% if customers %}
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Postcode</th>
+              <th>Type</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for customer in customers %}
+            <tr>
+              <td><strong><a href="{% url 'admin_edit_customer' customer.id %}" style="color:#1b5e20;">{{ customer.name }}</a></strong></td>
+              <td style="color:#555;">{{ customer.email }}</td>
+              <td>{{ customer.postal_code }}</td>
+              <td><span class="badge badge-blue">{{ customer.customer_type|title }}</span></td>
+              <td><span class="badge" style="background:#e3f2fd;color:#1565c0;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600;">Customer</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+          <div class="adm-empty">No customers registered yet.</div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Admins (full width) -->
+  <div class="adm-card" style="margin-bottom:1.2rem;">
+    <div class="adm-card-head">
+      <h2>Admins</h2>
+      <span class="adm-count">{{ admin_count }}</span>
+      <a href="{% url 'create_admin_account' %}" style="margin-left:auto;background:#1b5e20;color:#fff;padding:.4rem .9rem;border-radius:6px;font-size:.82rem;text-decoration:none;">+ New Admin</a>
+    </div>
+    <div class="adm-card-body">
+      {% if admins %}
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ad in admins %}
+          <tr>
+            <td><strong><a href="{% url 'admin_edit_admin' ad.id %}" style="color:#1b5e20;">{{ ad.name }}</a></strong></td>
+            <td style="color:#555;">{{ ad.email }}</td>
+            <td><span class="badge" style="background:#fff3e0;color:#e65100;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600;">Admin</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="adm-empty">No admin accounts yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent orders full width -->
+  <div class="adm-card" style="margin-bottom:1.2rem;">
+    <div class="adm-card-head">
+      <h2>Recent Orders</h2>
+      <span class="adm-count">last 10</span>
+    </div>
+    <div class="adm-card-body">
+      {% if recent_orders %}
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr>
+            <td><span class="badge badge-amber">#{{ order.id }}</span></td>
+            <td><strong>{{ order.user.name }}</strong></td>
+            <td style="color:#666;">{{ order.order_date|date:"d M Y" }}</td>
+            <td><strong>£{{ order.total_price }}</strong></td>
+            <td><span class="badge badge-green">{{ order.order_status|title }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="adm-empty">No orders yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Admin actions -->
+  <div class="adm-actions">
+    <h2>Admin Actions</h2>
+    <a href="{% url 'admin_commission_report' %}" class="btn btn-primary" style="background:#1b5e20;color:#fff;padding:.55rem 1.2rem;border-radius:6px;text-decoration:none;margin-right:.6rem;">View Commission Report</a>
+    <a href="{% url 'create_admin_account' %}" class="btn btn-primary">Create Admin Account</a>
+  </div>
+
+</div>
 {% endblock %}
