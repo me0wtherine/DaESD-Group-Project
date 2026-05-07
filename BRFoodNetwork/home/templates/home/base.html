@@ -49,10 +49,12 @@
                             <a href="{% url 'logout' %}" class="dropdown-item">Sign Out</a>
                         </div>
                     </li>
-                    <button onclick="toggleCart()" class="btn-cart">Cart</button><!-- button for cart-->
-                    <button onclick="toggleNotifications()" class="btn-notifications" type="button" aria-label="View notifications" title="Notifications">
+                    {% if user_type != 'admin' %}
+                      <button onclick="toggleCart()" class="btn-cart">Cart</button><!-- button for cart-->
+                      <button onclick="toggleNotifications()" class="btn-notifications" type="button" aria-label="View notifications" title="Notifications">
                         <span class="material-symbols-outlined"></span>
-                    </button>
+                      </button>
+                    {% endif %}
                 {% else %}
                     <li><a href="{% url 'welcome' %}">Login / Register</a></li>
                 {% endif %}

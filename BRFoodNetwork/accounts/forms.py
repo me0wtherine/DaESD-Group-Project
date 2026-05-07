@@ -4,6 +4,8 @@ from .models import Accounts, Producers, Admins
 
 class SignupForm(forms.ModelForm):
     """Customer registration form."""
+    password  = forms.CharField(widget=forms.PasswordInput())
+    password2 = forms.CharField(widget=forms.PasswordInput(), label="Confirm password")
 
     class Meta:
         model = Accounts
@@ -11,6 +13,15 @@ class SignupForm(forms.ModelForm):
         widgets = {
             'password': forms.PasswordInput(),
         }
+        fields = ['name', 'email', 'phone_number', 'address', 'postal_code', 'password']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        p1 = cleaned_data.get("password")
+        p2 = cleaned_data.get("password2")
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError("Passwords do not match.")
+        return cleaned_data
 
 
 class ProducerSignupForm(forms.ModelForm):
