@@ -11,8 +11,8 @@ class Products(models.Model):
         ('dairy', 'Dairy'),
         ('meat', 'Meat'),
         ('bakery', 'Bakery'),
-        ('drinks', 'Drinks'),
-        ('other', 'Other'),
+        ('preserves', 'Preserves'),
+        ('seasonal_speciality', 'Seasonal Specialties'),
     ]
 
     producer = models.ForeignKey(Producers, on_delete=models.CASCADE, related_name='products')
