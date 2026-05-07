@@ -7,7 +7,11 @@
     <div class="auth-card">
         <h1>Producer Sign Up</h1>
         <p>Create your producer account to sell your products</p>
-        
+        {% if messages %}
+            {% for message in messages %}
+                <p class="{{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
         <form method="post" class="auth-form">
             {% csrf_token %}
             {{ form.as_p }}

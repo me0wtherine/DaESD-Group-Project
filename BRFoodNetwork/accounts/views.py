@@ -27,7 +27,12 @@ def signup_view(request):
             account.password = make_password(form.cleaned_data['password'])
 
             # Geocode address and enforce 20-mile radius
-            lat, lng = geocode_address(account.address, account.postal_code)
+            try:
+                lat, lng = geocode_address(account.address, account.postal_code)
+            except Exception as e:
+                print("GEOCODE ERROR:", e)
+                messages.error(request, 'Address verification unavailable.')
+                return render(request, 'registration/signup.html', {'form': form})
             if lat is None or lng is None:
                 messages.error(request, 'We could not verify your address. Please enter a valid UK address and postal code.')
                 return render(request, 'registration/signup.html', {'form': form})
