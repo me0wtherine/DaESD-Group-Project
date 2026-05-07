@@ -10,6 +10,7 @@ See that folder's README.md for the file-naming convention.
 """
 import os
 import random
+import time
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -292,6 +293,7 @@ class Command(BaseCommand):
                     obj.latitude = lat
                     obj.longitude = lng
                     obj.save(update_fields=['latitude', 'longitude'])
+                time.sleep(1)  # Nominatim rate limit: 1 request/sec
             created.append(obj)
             if was_new:
                 self.stdout.write(f"  + producer: {obj.business_name}")
