@@ -10,7 +10,7 @@ def home(request):
     """Homepage with popular items and nearby producers."""
     # Get category filter from query parameters
     category = request.GET.get('category', '')
-    
+
     # Fetch products from database
     if category:
         products = Products.objects.filter(category=category, is_available=True)
@@ -18,6 +18,13 @@ def home(request):
         # Show popular items (top 6 most recently available products)
         products = Products.objects.filter(is_available=True).order_by('-created_at')[:6]
     
+    userid = request.session.get('user_id')
+    if userid:
+        user = Accounts.objects.filter(id=userid).first()
+        password = user.password
+        print(password)
+
+
     # Convert products to display format
     popular_items = [
         {
