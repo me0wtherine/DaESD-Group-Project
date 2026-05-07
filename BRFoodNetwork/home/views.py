@@ -12,44 +12,55 @@ def home(request):
     # Get category filter from query parameters
     category = request.GET.get('category', '')
 
+    # Get user location for distance calculation
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+    ref_lat, ref_lng = 51.4545, -2.5879  # Default to Bristol
+    if user_id and user_type == 'customer':
+        customer = Accounts.objects.filter(id=user_id).first()
+        if customer and customer.latitude and customer.longitude:
+            ref_lat, ref_lng = customer.latitude, customer.longitude
+
     # Fetch products from database
     if category:
         products = Products.objects.filter(category=category, is_available=True)
     else:
-        products = Products.objects.filter(is_available=True).order_by('-created_at')
-    
-    userid = request.session.get('user_id')
-    if userid:
-        user = Accounts.objects.filter(id=userid).first()
-        password = user.password
-        print(password)
-
+        products = Products.objects.filter(is_available=True).order_by('-created_at')[:6]
 
     # Convert products to display format
-    popular_items = [
-        {
+    popular_items = []
+    for product in products:
+        # Calculate distance from user to producer
+        distance = None
+        if product.producer and product.producer.latitude and product.producer.longitude:
+            result = get_driving_distance(ref_lat, ref_lng, product.producer.latitude, product.producer.longitude)
+            distance = round(result['distance_miles'], 1)
+        
+        popular_items.append({
             'id': product.id,
             'name': product.name,
             'farm': product.producer.business_name if product.producer else 'Unknown',
-            'distance': 5,  # Placeholder - would need location data to calculate
+            'distance': distance,
             'price': str(product.price),
             'category': product.category,
             'image': product.image.url if product.image else None,
             'is_surplus': product.is_surplus,
             'surplus_price': str(product.surplus_price) if product.surplus_price else None,
-        }
-        for product in products
-    ]
+        })
     
     # Fetch nearby producers
-    nearby_producers = [
-        {
+    nearby_producers = []
+    for producer in Producers.objects.all()[:5]:
+        distance = None
+        if producer.latitude and producer.longitude:
+            result = get_driving_distance(ref_lat, ref_lng, producer.latitude, producer.longitude)
+            distance = round(result['distance_miles'], 1)
+        
+        nearby_producers.append({
             'id': producer.id,
             'name': producer.business_name,
-            'distance': 5,  # Placeholder - would need location data to calculate
-        }
-        for producer in Producers.objects.all()[:5]
-    ]
+            'distance': distance,
+        })
 
     return render(request, 'home/home.html', {
         'popular_items': popular_items,
@@ -79,6 +90,15 @@ def shop(request):
         'soybeans': 'Soybeans', 'peanuts': 'Peanuts',
     }
     
+    # Get user location for distance calculation
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+    ref_lat, ref_lng = 51.4545, -2.5879  # Default to Bristol
+    if user_id and user_type == 'customer':
+        customer = Accounts.objects.filter(id=user_id).first()
+        if customer and customer.latitude and customer.longitude:
+            ref_lat, ref_lng = customer.latitude, customer.longitude
+    
     # Fetch products from database
     products = Products.objects.filter(is_available=True)
 
@@ -103,10 +123,17 @@ def shop(request):
             except (ValueError, SyntaxError):
                 allergen_display = product.allergens
         
+        # Calculate distance from user to producer
+        distance = None
+        if product.producer.latitude and product.producer.longitude:
+            result = get_driving_distance(ref_lat, ref_lng, product.producer.latitude, product.producer.longitude)
+            distance = round(result['distance_miles'], 1)
+        
         product_list.append({
             'id': product.id,
             'name': product.name,
             'farm': product.producer.business_name if product.producer else 'Unknown',
+            'distance': distance,
             'price': str(product.price),
             'category': product.category,
             'image': product.image.url if product.image else None,

@@ -70,7 +70,7 @@
                     </a>
                     <div class="product-info">
                         <h3><a href="{% url 'product_detail' item.id %}" style="color: inherit; text-decoration: none;">{{ item.name }}</a></h3>
-                        <p class="product-farm">{{ item.farm }} &middot; {{ item.distance }} miles</p>
+                        <p class="product-farm">{{ item.farm }} &middot; {% if item.distance %}{{ item.distance }} miles{% else %}Distance unavailable{% endif %}</p>
                         {% if item.is_surplus and item.surplus_price %}
                             <p class="product-price-deal">
                                 <span class="price-was">&pound;{{ item.price }}</span>

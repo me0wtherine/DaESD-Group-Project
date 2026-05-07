@@ -319,7 +319,9 @@
       {% else %}
       <button class="pd-add-btn" disabled>Out of Stock</button>
       {% endif %}
-
+      <div class="food-miles-bar">
+          🌿 This order travels <strong>{{ distance }} miles</strong> from the farm to the you.
+      </div>
       {% if product.available_from and product.available_to %}
       <p class="pd-availability">
         📅 Available: {{ product.available_from|date:"d/m/Y" }} – {{ product.available_to|date:"d/m/Y" }}
