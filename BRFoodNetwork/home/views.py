@@ -127,9 +127,28 @@ def shop(request):
 
 
 def product_detail(request, product_id):
+    import ast
     """Product detail page with full description, allergens, and producer info."""
     product = get_object_or_404(Products, id=product_id)
     producer = product.producer
+
+    # Allergen labels for display
+    ALLERGEN_LABELS = {
+        'celery': 'Celery', 'gluten': 'Gluten', 'lupin': 'Lupin',
+        'crustaceans': 'Crustaceans', 'milk': 'Milk', 'sulphur_dioxide': 'Sulphur Dioxide',
+        'sesame': 'Sesame', 'molluscs': 'Molluscs', 'mustard': 'Mustard',
+        'nuts': 'Nuts', 'egg': 'Egg', 'fish': 'Fish',
+        'soybeans': 'Soybeans', 'peanuts': 'Peanuts',
+    }
+
+    # Parse allergens from string representation
+    allergen_display = ''
+    if product.allergens:
+        try:
+            allergen_list = ast.literal_eval(product.allergens) if isinstance(product.allergens, str) else product.allergens
+            allergen_display = ', '.join(ALLERGEN_LABELS.get(a, a) for a in allergen_list)
+        except (ValueError, SyntaxError):
+            allergen_display = product.allergens
 
     # Calculate distance
     distance = None
@@ -177,6 +196,7 @@ def product_detail(request, product_id):
         'reviews': review_list,
         'user_review': user_review,
         'can_review': user_can_review,
+        'allergens': allergen_display,
     })
 
 

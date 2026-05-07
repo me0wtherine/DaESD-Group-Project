@@ -337,10 +337,10 @@
   {% endif %}
 
   <!-- Allergens -->
-  {% if product.allergens %}
+  {% if allergens %}
   <div class="pd-allergens">
     <h3>⚠️ Allergen Information</h3>
-    <p class="pd-allergen-text">{{ product.allergens }}</p>
+    <p class="pd-allergen-text"><strong>Allergens:</strong> {{ allergens }}</p>
   </div>
   {% endif %}
 
