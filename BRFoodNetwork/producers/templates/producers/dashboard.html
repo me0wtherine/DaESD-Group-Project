@@ -274,7 +274,7 @@
     // Add another opening hours row
     function addHoursRow() {
         const list = document.getElementById('openingHoursList');
-        const days = {{ weekdays_json|safe }};
+        const days = JSON.parse('{{ weekdays_json|safe }}');
         const options = days.map(d => `<option value="${d}">${d}</option>`).join('');
         const row = document.createElement('div');
         row.className = 'hours-row';
