@@ -80,6 +80,7 @@ def shop(request):
     category = request.GET.get('category', '')
     search_query = request.GET.get('Search', '')
     allergens = request.GET.get('allergens', '')
+    organic = request.GET.get('organic', '')
     
     # Allergen labels for display
     ALLERGEN_LABELS = {
@@ -107,6 +108,9 @@ def shop(request):
     
     if allergens:
         products = products.exclude(allergens__icontains=allergens)
+
+    if organic:
+        products = products.filter(is_organic=True)
 
     # Convert products to display format
     product_list = []
@@ -233,10 +237,10 @@ def product_detail(request, product_id):
 
 def producers(request):
     """Producers page with map and food miles calculation."""
-    category = request.GET.get('category', '')
+    certification = request.GET.get('certification', '')
 
-    if category:
-        all_producers = Producers.objects.filter(products__category=category, is_active=True).distinct()
+    if certification:
+        all_producers = Producers.objects.filter(certifications=certification, is_active=True).distinct()
     else:
         all_producers = Producers.objects.filter(is_active=True)
 
@@ -296,7 +300,7 @@ def producers(request):
 
     return render(request, 'home/producers.html', {
         'producers': producer_list,
-        'selected_category': category,
+        'selected_certification': certification,
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
         'default_lat': default_lat,
         'default_lng': default_lng,

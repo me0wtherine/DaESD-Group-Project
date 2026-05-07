@@ -198,6 +198,7 @@
   <div class="producer-search">
     <input type="text" id="producer-filter" placeholder="Search producers by name or location..." />
   </div>
+  <a href="?certification=organic" class="btn btn-outline {% if selected_certification == 'organic' %}active{% endif %}">Organic</a>
 
   <!-- ===== Producer Cards ===== -->
   <div class="producer-grid" id="producer-grid">
@@ -227,6 +228,9 @@
             {% endif %}
             {% if producer.delivery_available %}
               <span class="meta-badge">Delivery</span>
+            {% endif %}
+            {% if producer.certification %}
+              <span class="meta-badge">{{ producer.certification }}</span>
             {% endif %}
             <span class="meta-badge">{{ producer.postal_code }}</span>
           </div>
