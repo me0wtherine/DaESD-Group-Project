@@ -7,21 +7,46 @@
 <section class="search-section">
     <div class="search-area">
         <h1>Search for local products...</h1>
-        <form class="search-form" method="get" action="#">
+        <form class="search-form" method="get" action="">
+            {% if selected_category %}
+                <input type="hidden" name="category" value="{{ selected_category }}">
+            {% endif %}
             <div class="search-input-wrapper">
                 <span class="search-icon">&#9906;</span>
                 <input type="text" name="Search" placeholder="Search for local products..." />
             </div>
             <button type="submit" class="btn btn-primary">Search</button>
-        </form>
+            <div class="allergens-filters">
+                    <div class="filter-group">
+                        <label>Filter by Allergen:</label>
+                            <select name="allergens" id="allergensFilter" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                <option value="celery" {% if selected_allergens == 'celery' %}selected{% endif %}>Celery</option>
+                                <option value="gluten" {% if selected_allergens == 'gluten' %}selected{% endif %}>Gluten</option>
+                                <option value="lupin" {% if selected_allergens == 'lupin' %}selected{% endif %}>Lupin</option>
+                                <option value="crustaceans" {% if selected_allergens == 'crustaceans' %}selected{% endif %}>Crustaceans</option>
+                                <option value="milk" {% if selected_allergens == 'milk' %}selected{% endif %}>Milk</option>
+                                <option value="sulphur_dioxide" {% if selected_allergens == 'sulphur_dioxide' %}selected{% endif %}>Sulphur Dioxide</option>
+                                <option value="seasame" {% if selected_allergens == 'seasame' %}selected{% endif %}>Seasame</option>
+                                <option value="molluscs" {% if selected_allergens == 'molluscs' %}selected{% endif %}>Molluscs</option>
+                                <option value="mustard" {% if selected_allergens == 'mustard' %}selected{% endif %}>Mustard</option>
+                                <option value="nuts" {% if selected_allergens == 'nuts' %}selected{% endif %}>Nuts</option>
+                                <option value="egg" {% if selected_allergens == 'egg' %}selected{% endif %}>Egg</option>
+                                <option value="fish" {% if selected_allergens == 'fish' %}selected{% endif %}>Fish</option>
+                                <option value="soybeans" {% if selected_allergens == 'soybeans' %}selected{% endif %}>Soybeans</option>
+                                <option value="peanuts" {% if selected_allergens == 'peanuts' %}selected{% endif %}>Peanuts</option>
+                            </select>
+                    </div>
+                </div>
+            </form>
         <div class="category-filters">
             <a href="?category=vegetables" class="btn btn-outline {% if selected_category == 'vegetables' %}active{% endif %}">Vegetables</a>
-            <a href="?category=bakery" class="btn btn-outline {% if selected_category == 'fruits' %}active{% endif %}">Fruits</a>
+            <a href="?category=fruits" class="btn btn-outline {% if selected_category == 'fruits' %}active{% endif %}">Fruits</a>
             <a href="?category=dairy" class="btn btn-outline {% if selected_category == 'dairy' %}active{% endif %}">Dairy</a>
-            <a href="?category=bakery" class="btn btn-outline {% if selected_category == 'meat' %}active{% endif %}">Meat</a>
+            <a href="?category=meat" class="btn btn-outline {% if selected_category == 'meat' %}active{% endif %}">Meat</a>
             <a href="?category=bakery" class="btn btn-outline {% if selected_category == 'bakery' %}active{% endif %}">Bakery</a>
-            <a href="?category=bakery" class="btn btn-outline {% if selected_category == 'preserves' %}active{% endif %}">Preserves</a>
-            <a href="?category=bakery" class="btn btn-outline {% if selected_category == 'seasonal_speciality' %}active{% endif %}">Seasonal Specialties</a>
+            <a href="?category=preserves" class="btn btn-outline {% if selected_category == 'preserves' %}active{% endif %}">Preserves</a>
+            <a href="?category=seasonal_speciality" class="btn btn-outline {% if selected_category == 'seasonal_speciality' %}active{% endif %}">Seasonal Specialties</a>
             <a href="?" class="btn btn-outline {% if not selected_category %}active{% endif %}">All Products</a>
         </div>
     </div>
@@ -76,3 +101,5 @@
 
 
 {% endblock %}
+
+

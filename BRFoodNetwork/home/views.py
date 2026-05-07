@@ -67,12 +67,16 @@ def shop(request):
     # Get category filter from query parameters
     category = request.GET.get('category', '')
     search_query = request.GET.get('Search', '')
+    allergens = request.GET.get('allergens', '')
     
     # Fetch products from database
+    products = Products.objects.filter(is_available=True)
+
     if category:
-        products = Products.objects.filter(category=category, is_available=True)
-    else:
-        products = Products.objects.filter(is_available=True)
+        products = Products.objects.filter(category=category)
+    
+    if allergens:
+        products = Products.objects.filter(allergens__icontains=allergens)
     
     # Convert products to display format
     product_list = []
@@ -112,6 +116,7 @@ def shop(request):
         'products': product_list,
         'selected_category': category,
         'search': search_query,
+        'selected_allergens': allergens,
     })
 
 
